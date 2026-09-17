@@ -1,5 +1,5 @@
-#define TB_IMPL
 #include "../include/termbox2.h"
+#include "../include/miniaudio.h"
 #include "tetris.h"
 #include <sys/time.h>
 #include <time.h>
@@ -11,6 +11,8 @@ static struct {
     tetromino_t ttm, ttm_next;
     tetromino_color_t bg[HEIGHT][WIDTH];
     int count[HEIGHT]; // for each row, count how full is it
+    ma_engine snd;
+    ma_result snd_ok;
 } g;
 
 void spawn_next_pc();
@@ -39,10 +41,11 @@ void verify_tetris() {
 }
 
 void init();
+void shutdown();
 void update();
 void render();
 
-int main(int argc, char **argv) {
+int main() {
     init();
 
     int limit = 60;
@@ -103,6 +106,15 @@ void spawn_next_pc() {
 
 void init() {
     tb_init();
+
+    g.snd_ok = ma_engine_init(NULL, &g.snd);
+    if (g.snd_ok != MA_SUCCESS) {
+        tb_printf(0, 0, TB_WHITE, 0, "Failed to init audio. Press any key to continue...\n");
+        tb_present();
+        struct tb_event e;
+        tb_poll_event(&e);
+    }
+    
     srand(time(NULL));
 
     g.state = PLAY;
@@ -116,6 +128,11 @@ void init() {
         }
         g.count[y] = 0;
     }
+}
+
+void shutdown() {
+    ma_engine_uninit(&g.snd);
+    tb_shutdown();
 }
 
 void update() {
