@@ -1,5 +1,5 @@
 #define TB_IMPL
-#include "../termbox2.h"
+#include "../include/termbox2.h"
 #include "tetris.h"
 #include <sys/time.h>
 #include <time.h>

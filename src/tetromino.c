@@ -1,5 +1,5 @@
 #include "tetromino.h"
-#include "../termbox2.h"
+#include "../include/termbox2.h"
 
 point_t *get_tetromino_points(tetromino_type_t tt) {
     static point_t pts[][4] = {
