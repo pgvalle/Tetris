@@ -1,0 +1,8 @@
+# Set the indentation size to 4 spaces
+IndentWidth: 4
+
+# Convert tab characters into spaces
+UseTab: Never
+
+# Ensure tab characters inside comments or string literals are also 4 spaces
+TabWidth: 4
