@@ -10,7 +10,7 @@ void move_tetromino_to_bg(const tetromino_t *t,
     }
 }
 
-bool collide_tetromino(tetromino_t *t, tetromino_color_t bg[HEIGHT][WIDTH]) {
+bool collide_tetromino(tetromino_t *t, const tetromino_color_t bg[HEIGHT][WIDTH]) {
     const point_t *pts = get_tetromino_points(t->type);
 
     for (int i = 0; i < 4; i++) {
@@ -30,7 +30,7 @@ bool collide_tetromino(tetromino_t *t, tetromino_color_t bg[HEIGHT][WIDTH]) {
     return false;
 }
 
-void render_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
+void render_bg(const tetromino_color_t bg[HEIGHT][WIDTH]) {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
             tetromino_color_t clr = bg[y][x];
