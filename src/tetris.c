@@ -27,7 +27,7 @@ point_t rotate_n_move_point(point_t pt, int deg, point_t off) {
 }
 
 void rotate_tetromino(tetromino_t *t, int cw) {
-    if (t->type == 'O') return;
+    if (t->type == TETROMINO_TYPE_O) return;
     t->deg += (cw ? -1 : 1) * 90;
 }
 
