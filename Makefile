@@ -4,7 +4,7 @@ LDLIBS ?= -lm
 
 TARGET := tetris
 OBJDIR := obj
-SOURCES := src/main.c src/tetris.c
+SOURCES := src/main.c src/tetris.c src/point.c src/tetromino.c
 OBJECTS := $(SOURCES:src/%.c=$(OBJDIR)/%.o)
 
 .PHONY: all clean run

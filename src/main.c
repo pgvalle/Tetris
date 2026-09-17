@@ -4,25 +4,22 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define BG_CLR TB_BLACK
-
 static struct {
     enum { TETRIS, SEMI_TETRIS, PLAY } state;
     int level;
     int ticks;
     tetromino_t ttm, ttm_next;
-    color_t bg[HEIGHT][WIDTH];
+    tetromino_color_t bg[HEIGHT][WIDTH];
     int count[HEIGHT]; // for each row, count how full is it
 } g;
 
 void spawn_next_pc();
-void move_pc_to_bg(const tetromino_t *pc);
 void verify_tetris() {
     int seq = 0;
     int row_complete = 0, tetris = 0;
     for (int y = 0; y < HEIGHT; y++) {
         if (g.count[y] == WIDTH) {
-            g.count[y] = -2 * g.count[y]; // to know which rows are emptying
+            g.count[y] = -g.count[y]; // to know which rows are emptying
             seq++;
             if (seq == 4) {
                 tetris = 1;
@@ -58,24 +55,25 @@ int main(int argc, char **argv) {
                     run = 0;
                 else if (ev.ch == 'r') {
                     rotate_tetromino(&g.ttm, 1);
-                    if (collide(&g.ttm, g.bg, BG_CLR)) {
+                    if (collide_tetromino(&g.ttm, g.bg)) {
                         rotate_tetromino(&g.ttm, 0);
                     }
                 } else if (ev.key == TB_KEY_ARROW_LEFT) {
                     g.ttm.pos.x -= 1;
-                    if (collide(&g.ttm, g.bg, BG_CLR)) {
+                    if (collide_tetromino(&g.ttm, g.bg)) {
                         g.ttm.pos.x += 1;
                     }
                 } else if (ev.key == TB_KEY_ARROW_RIGHT) {
                     g.ttm.pos.x += 1;
-                    if (collide(&g.ttm, g.bg, BG_CLR)) {
+                    if (collide_tetromino(&g.ttm, g.bg)) {
                         g.ttm.pos.x -= 1;
                     }
                 } else if (ev.key == TB_KEY_ARROW_DOWN) {
                     g.ttm.pos.y += 1;
-                    if (collide(&g.ttm, g.bg, BG_CLR)) {
+                    if (collide_tetromino(&g.ttm, g.bg)) {
                         g.ttm.pos.y -= 1;
-                        move_pc_to_bg(&g.ttm);
+                        move_tetromino_to_bg(&g.ttm, g.bg);
+                        g.count[g.ttm.pos.y]++; // add to the counter of that row
                         verify_tetris();
                         if (g.state == PLAY)
                             spawn_next_pc();
@@ -101,15 +99,6 @@ void spawn_next_pc() {
 
     int type = rand() % TETROMINO_TYPE_COUNT;
     g.ttm_next = (tetromino_t){type, TB_RED, {15, 5}, 0};
-}
-
-void move_pc_to_bg(const tetromino_t *pc) {
-    const point_t *pts = get_tetromino_points(pc->type);
-    for (int i = 0; i < 4; i++) {
-        point_t pt = rotate_n_move_point(pts[i], pc->deg, pc->pos);
-        g.bg[pt.y][pt.x] = pc->clr;
-        g.count[pt.y]++; // add to the counter of that row
-    }
 }
 
 void init() {
@@ -151,9 +140,10 @@ void update() {
         g.ticks++;
         if (g.ticks % 60 == 0) {
             g.ttm.pos.y += 1;
-            if (collide(&g.ttm, g.bg, BG_CLR)) {
+            if (collide_tetromino(&g.ttm, g.bg)) {
                 g.ttm.pos.y -= 1;
-                move_pc_to_bg(&g.ttm);
+                move_tetromino_to_bg(&g.ttm, g.bg);
+                g.count[g.ttm.pos.y]++; // add to the counter of that row
                 verify_tetris();
                 if (g.state == PLAY)
                     spawn_next_pc();
@@ -168,10 +158,10 @@ void render() {
     switch (g.state) {
     case SEMI_TETRIS:
     case TETRIS:
-        render_bg(g.bg, BG_CLR);
+        render_bg(g.bg);
         break;
     case PLAY:
-        render_bg(g.bg, BG_CLR);
+        render_bg(g.bg);
         render_tetromino(&g.ttm);
         render_tetromino(&g.ttm_next);
         break;
