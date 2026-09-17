@@ -16,10 +16,21 @@ point_t *get_tetromino_points(tetromino_type_t tt) {
 }
 
 void rotate_tetromino(tetromino_t *t, int cw) {
-    if (t->type == TETROMINO_TYPE_O)
-        return;
-    // TODO: treat I, S, Z special cases
-    t->deg += (cw ? -1 : 1) * 90;
+    switch (t->type) {
+    case TETROMINO_TYPE_O:
+        break;
+    case TETROMINO_TYPE_L: // all 4 orientations valid
+    case TETROMINO_TYPE_J:
+    case TETROMINO_TYPE_T:
+        t->deg += (cw ? -1 : 1) * 90;
+        break;
+    case TETROMINO_TYPE_Z: // only 2 valid orientations
+    case TETROMINO_TYPE_S:
+    case TETROMINO_TYPE_I:
+        t->deg = t->deg == 90 ? 0 : 90;
+    default:
+        break;
+    }
 }
 
 void render_tetromino(const tetromino_t *t) {
