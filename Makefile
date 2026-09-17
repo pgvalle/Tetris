@@ -1,10 +1,10 @@
 CC ?= cc
-CFLAGS ?= -Wall -Wextra -std=c11
+CFLAGS ?= -Wall -Wextra -std=c11 -Iinclude
 LDLIBS ?= -lm
 
 TARGET := tetris
 OBJDIR := obj
-SOURCES := src/main.c src/tetris.c src/point.c src/tetromino.c
+SOURCES := src/ext.c src/main.c src/tetris.c src/point.c src/tetromino.c
 OBJECTS := $(SOURCES:src/%.c=$(OBJDIR)/%.o)
 
 .PHONY: all clean run
@@ -15,7 +15,7 @@ $(TARGET): $(OBJECTS)
 	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
 
 
-$(OBJDIR)/%.o: src/%.c src/tetris.h termbox2.h
+$(OBJDIR)/%.o: src/%.c src/*.h include/*.h
 	@mkdir -p $(@D)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
