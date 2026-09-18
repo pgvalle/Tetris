@@ -25,12 +25,8 @@ bool collide_tetromino(const tetromino_color_t bg[HEIGHT][WIDTH],
         if (pt.x < 0 || pt.x >= WIDTH - 1 || pt.y >= HEIGHT)
             return true;
         // bg collision
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
-                if (bg[y][x] != BG_CLR && pt.x == x && pt.y == y)
-                    return true;
-            }
-        }
+        if (bg[pt.y][pt.x] != BG_CLR)
+            return true;
     }
 
     return false;
