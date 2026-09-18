@@ -1,8 +1,27 @@
 #include "../include/termbox2.h"
 #include "../include/miniaudio.h"
-#include "tetris.h"
+#include "point.h"
+#include "tetromino.h"
+#include "bg.h"
+
 #include <sys/time.h>
 #include <time.h>
+
+/*
+Gameplay state machine
+Play
+ - move/rotate pieces
+ fill 4 rows -> TETRIS
+ fill 1-3 rows -> SEMITETRIS
+TETRIS
+ - animation on decaying rows
+ - a sound
+ -> PLAY
+SEMITETRIS
+ - animation on decaying rows
+ - another sound
+ -> PLAY
+*/
 
 static struct {
     enum { TETRIS, SEMI_TETRIS, PLAY } state;
@@ -13,7 +32,15 @@ static struct {
     int count[HEIGHT]; // for each row, count how full is it
     ma_engine snd;
     ma_result snd_ok;
+    struct timeval epoch;
 } g;
+
+int get_time_ms() {
+    struct timeval now, result;
+    gettimeofday(&now, NULL);
+    timersub(&now, &g.epoch, &result);
+    return (int)result.tv_sec + (int)(result.tv_usec / 1000);
+}
 
 void spawn_next_pc();
 void verify_tetris() {
@@ -52,7 +79,9 @@ int main() {
     int run = 1;
     while (run) {
         struct tb_event ev;
-        while (tb_peek_event(&ev, 16) != TB_ERR_NO_EVENT) {
+        int timeout = 16;
+        int start = get_time_ms();
+        while (tb_peek_event(&ev, timeout) != TB_ERR_NO_EVENT) {
             if (ev.type == TB_EVENT_KEY) {
                 if (ev.ch == 'q')
                     run = 0;
@@ -83,10 +112,18 @@ int main() {
                     }
                 }
             }
+
+            int now = get_time_ms();
+            timeout -= now - start;
+            start = now;
         }
+
+        int now = get_time_ms();
+        
 
         update();
         tb_clear();
+        tb_printf(80, 40, 0, 0, "%d", get_time_ms());
         render();
         tb_present();
     }
@@ -128,6 +165,8 @@ void init() {
         }
         g.count[y] = 0;
     }
+
+    gettimeofday(&g.epoch, NULL);
 }
 
 void shutdown() {

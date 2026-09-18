@@ -1,4 +1,4 @@
-#include "tetris.h"
+#include "bg.h"
 #include "../include/termbox2.h"
 
 void move_tetromino_to_bg(const tetromino_t *t,
