@@ -1,5 +1,8 @@
 #include "bg.h"
+#include "point.h"
+#include "tetromino.h"
 
+#include <stdbool.h>
 #include <termbox2.h>
 
 void move_tetromino_to_bg(const tetromino_t *t,
@@ -11,13 +14,14 @@ void move_tetromino_to_bg(const tetromino_t *t,
     }
 }
 
-bool collide_tetromino(tetromino_t *t, const tetromino_color_t bg[HEIGHT][WIDTH]) {
+bool collide_tetromino(tetromino_t *t,
+                       const tetromino_color_t bg[HEIGHT][WIDTH]) {
     const point_t *pts = get_tetromino_points(t->type);
 
     for (int i = 0; i < 4; i++) {
         point_t pt = rotate_n_move_point(pts[i], t->deg, t->pos);
         // walls collision
-        if (pt.x < 0 || pt.x >= WIDTH || pt.y >= HEIGHT)
+        if (pt.x < 0 || pt.x >= WIDTH - 1 || pt.y >= HEIGHT)
             return true;
         // bg collision
         for (int y = 0; y < HEIGHT; y++) {
@@ -33,7 +37,7 @@ bool collide_tetromino(tetromino_t *t, const tetromino_color_t bg[HEIGHT][WIDTH]
 
 void render_bg(const tetromino_color_t bg[HEIGHT][WIDTH]) {
     for (int y = 0; y < HEIGHT; y++) {
-        for (int x = 0; x < WIDTH; x++) {
+        for (int x = 0; x < WIDTH - 1; x++) {
             tetromino_color_t clr = bg[y][x];
 #ifdef STRETCH_X
             tb_printf(2 * x, y, 0, clr, clr == BG_CLR ? "  " : "x ");
