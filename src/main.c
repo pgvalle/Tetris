@@ -1,8 +1,9 @@
-#include "../include/termbox2.h"
-#include "../include/miniaudio.h"
+#include "bg.h"
 #include "point.h"
 #include "tetromino.h"
-#include "bg.h"
+
+#include <miniaudio.h>
+#include <termbox2.h>
 
 #include <sys/time.h>
 #include <time.h>
@@ -105,7 +106,8 @@ int main() {
                     if (collide_tetromino(&g.ttm, g.bg)) {
                         g.ttm.pos.y -= 1;
                         move_tetromino_to_bg(&g.ttm, g.bg);
-                        g.count[g.ttm.pos.y]++; // add to the counter of that row
+                        g.count[g.ttm.pos.y]++; // add to the counter of that
+                                                // row
                         verify_tetris();
                         if (g.state == PLAY)
                             spawn_next_pc();
@@ -119,7 +121,6 @@ int main() {
         }
 
         int now = get_time_ms();
-        
 
         update();
         tb_clear();
@@ -146,12 +147,13 @@ void init() {
 
     g.snd_ok = ma_engine_init(NULL, &g.snd);
     if (g.snd_ok != MA_SUCCESS) {
-        tb_printf(0, 0, TB_WHITE, 0, "Failed to init audio. Press any key to continue...\n");
+        tb_printf(0, 0, TB_WHITE, 0,
+                  "Failed to init audio. Press any key to continue...\n");
         tb_present();
         struct tb_event e;
         tb_poll_event(&e);
     }
-    
+
     srand(time(NULL));
 
     g.state = PLAY;
@@ -191,7 +193,8 @@ void update() {
             spawn_next_pc();
             g.state = PLAY;
         }
-        break;}
+        break;
+    }
     case PLAY:
         g.ticks++;
         if (g.ticks % 60 == 0) {

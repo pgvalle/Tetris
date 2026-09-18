@@ -1,6 +1,8 @@
 #include "point.h"
+
 #include <math.h>
 
+// M_PI not defined in any math.h across platforms
 #define PI 3.14159265358979323846
 
 point_t rotate_n_move_point(point_t pt, int deg, point_t off) {

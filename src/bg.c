@@ -1,5 +1,6 @@
 #include "bg.h"
-#include "../include/termbox2.h"
+
+#include <termbox2.h>
 
 void move_tetromino_to_bg(const tetromino_t *t,
                           tetromino_color_t bg[HEIGHT][WIDTH]) {

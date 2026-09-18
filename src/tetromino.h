@@ -1,8 +1,8 @@
 #ifndef TETRIS_TETROMINO_H
 #define TETRIS_TETROMINO_H
 
-#include "config.h"
 #include "point.h"
+
 #include <stdbool.h>
 
 typedef char tetromino_color_t;
