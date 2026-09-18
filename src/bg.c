@@ -5,8 +5,8 @@
 #include <stdbool.h>
 #include <termbox2.h>
 
-void move_tetromino_to_bg(const tetromino_t *t,
-                          tetromino_color_t bg[HEIGHT][WIDTH]) {
+void move_tetromino_to_bg(tetromino_color_t bg[HEIGHT][WIDTH],
+                          const tetromino_t *t) {
     const point_t *pts = get_tetromino_points(t->type);
     for (int i = 0; i < 4; i++) {
         point_t pt = rotate_n_move_point(pts[i], t->deg, t->pos);
@@ -14,8 +14,8 @@ void move_tetromino_to_bg(const tetromino_t *t,
     }
 }
 
-bool collide_tetromino(tetromino_t *t,
-                       const tetromino_color_t bg[HEIGHT][WIDTH]) {
+bool collide_tetromino(const tetromino_color_t bg[HEIGHT][WIDTH],
+                       tetromino_t *t) {
     const point_t *pts = get_tetromino_points(t->type);
 
     for (int i = 0; i < 4; i++) {
