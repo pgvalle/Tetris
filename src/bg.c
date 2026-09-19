@@ -32,6 +32,25 @@ bool collide_tetromino(const tetromino_color_t bg[HEIGHT][WIDTH],
     return false;
 }
 
+int verify_tetris(const tetromino_color_t bg[HEIGHT][WIDTH]) {
+    int seq = 0;
+    int semi_tetris = 0;
+    for (int y = 0; y < HEIGHT; y++) {
+        if (bg[y][WIDTH - 1] == WIDTH - 1) {
+            semi_tetris = 1;
+            seq++;
+        } else {
+            seq = 0;
+        }
+
+        if (seq == 4) {
+            return 2; // full tetris
+        }
+    };
+
+    return semi_tetris;
+}
+
 void render_bg(const tetromino_color_t bg[HEIGHT][WIDTH]) {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH - 1; x++) {
