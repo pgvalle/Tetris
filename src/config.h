@@ -5,6 +5,6 @@
 #define HEIGHT 20
 #define BG_CLR TB_BLACK
 #define STRETCH_X // The game feels less narrowed
-#define FPS 60
+#define FPS 50
 
 #endif // TETRIS_CONFIG_H
