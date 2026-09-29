@@ -4,9 +4,9 @@
 typedef struct {
     int timeout;
     int delta;
-} ttimer_t;
+} tim3r_t;
 
-#define new_timer(timeout) ((atimer_t) {timeout, 0})
+#define new_timer(timeout) ((tim3r_t) {timeout, 0})
 #define reset_timer(t) ((t).delta = 0)
 #define update_timer(t, dt) ((t).delta += dt)
 #define has_timed_out(t) ((t).delta >= (t).timeout)
