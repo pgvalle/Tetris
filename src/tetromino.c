@@ -19,14 +19,9 @@ static tetromino_color_t COLORS[] = {TB_RED,     TB_GREEN, TB_YELLOW, TB_BLUE,
 
 // to avoid modulo bias
 static int random_range(int min, int max) {
+    float random = 1.0 * rand() / RAND_MAX;
     int range = max - min + 1;
-    int limit = RAND_MAX - RAND_MAX % range;
-    int r;
-
-    do {
-        r = rand();
-    } while (r >= limit);
-    return min + (r % range);
+    return min + random * range;
 }
 
 tetromino_t new_tetromino(int x, int y) {
