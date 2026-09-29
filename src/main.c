@@ -124,7 +124,7 @@ void shutdown(int status) {
     exit(status);
 }
 
-void process_keySTATE__event(const struct tb_event *e) {
+void process_key_event(const struct tb_event *e) {
     switch (g.state) {
     case PLAY:
         if (e->ch == 'q') {
@@ -161,10 +161,10 @@ void process_keySTATE__event(const struct tb_event *e) {
                 if (!a)
                     spawn_next_ttm();
                 else if (a == 1) {
-                    ma_engine_play_sound(&g.snd, "./res/a/semi-tetris.mp3", NULL); 
+                    ma_engine_play_sound(&g.snd, SFX_BASE_DIR "semi-tetris.mp3", NULL); 
                     g.state = SEMI_TETRIS;
                 } else {
-                    ma_engine_play_sound(&g.snd, "./res/a/tetris.mp3", NULL); 
+                    ma_engine_play_sound(&g.snd, SFX_BASE_DIR "tetris.mp3", NULL); 
                     g.state = TETRIS;
                 }
             }
@@ -191,7 +191,7 @@ void process_input_event(const struct tb_event *e) {
     case TB_EVENT_RESIZE:
         break;
     case TB_EVENT_KEY:
-        process_input_event(e);
+        process_key_event(e);
         break;
     default:
         break;
@@ -248,10 +248,10 @@ void update(int dt) {
                 if (!a)
                     spawn_next_ttm();
                 else if (a == 1) {
-                    ma_engine_play_sound(&g.snd, "./res/a/semi-tetris.mp3", NULL); 
+                    ma_engine_play_sound(&g.snd, SFX_BASE_DIR "semi-tetris.mp3", NULL); 
                     g.state = SEMI_TETRIS;
                 } else {
-                    ma_engine_play_sound(&g.snd, "./res/a/tetris.mp3", NULL); 
+                    ma_engine_play_sound(&g.snd, SFX_BASE_DIR "tetris.mp3", NULL); 
                     g.state = TETRIS;
                 }
             }

@@ -7,4 +7,7 @@
 #define STRETCH_X // The game feels less narrowed
 #define FPS 50
 
+#define RES_BASE_DIR "./res/"
+#define SFX_BASE_DIR RES_BASE_DIR "sfx/"
+
 #endif // TETRIS_CONFIG_H
