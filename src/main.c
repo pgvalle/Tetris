@@ -124,9 +124,9 @@ void shutdown(int status) {
     exit(status);
 }
 
-void process_key_event(const struct tb_event *e) {
+void process_keySTATE__event(const struct tb_event *e) {
     switch (g.state) {
-    case STATE_PLAY:
+    case PLAY:
         if (e->ch == 'q') {
             shutdown(EXIT_SUCCESS);
         }
@@ -162,10 +162,10 @@ void process_key_event(const struct tb_event *e) {
                     spawn_next_ttm();
                 else if (a == 1) {
                     ma_engine_play_sound(&g.snd, "./res/a/semi-tetris.mp3", NULL); 
-                    g.on_decay = true;
+                    g.state = SEMI_TETRIS;
                 } else {
                     ma_engine_play_sound(&g.snd, "./res/a/tetris.mp3", NULL); 
-                    g.on_decay = true;
+                    g.state = TETRIS;
                 }
             }
         }
@@ -201,7 +201,7 @@ void process_input_event(const struct tb_event *e) {
 void update(int dt) {
     switch (g.state) {
     case TETRIS:
-        // play sound and some flashy extra visuals
+        // play STATE_sound and some flashy extra visuals
     case SEMI_TETRIS: {
         // struct tb_event e;
         // tb_peek_event(&e, 5000);
@@ -231,43 +231,11 @@ void update(int dt) {
         if (over) {
             compact_bg(g.bg);
             spawn_next_ttm();
-            g.state = STATE_PLAY;
+            g.state = PLAY;
         }
         break;
     }
-    case STATE_PLAY:
-        if (g.on_decay) {
-            update_timer(g.decay_tmr, dt);
-            if (!has_timed_out(g.decay_tmr)) {
-                break;
-            }
-
-            reset_timer(g.decay_tmr);
-            for (int y = 0; y < HEIGHT; y++) {
-                if (g.bg[y][WIDTH - 1] != WIDTH - 1)
-                    continue;
-
-                for (int x = 0; x < WIDTH - 1; x++) {
-                    if (g.bg[y][x] != BG_CLR) {
-                        g.bg[y][x] = BG_CLR;
-                        if (x == WIDTH - 2) {
-                            g.bg[y][WIDTH - 1] = 0;
-                            g.on_decay = false;
-                        }
-                        break;
-                    }
-                }
-            }
-
-        if (!g.on_decay) {
-            compact_bg(g.bg);
-            spawn_next_ttm();
-            g.state = STATE_PLAY;
-        }
-        break;
-        } else {
-            
-        }
+    case PLAY:
         // gravity
         update_timer(g.gravt_tmr, dt);
         if (has_timed_out(g.gravt_tmr)) {
@@ -299,7 +267,7 @@ void render() {
     case TETRIS:
         render_bg(g.bg);
         break;
-    case STATE_PLAY:
+    case PLAY:
         render_bg(g.bg);
         render_tetromino(&g.ttm);
         render_tetromino(&g.ttm_next);
