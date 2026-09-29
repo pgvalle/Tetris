@@ -1,14 +1,22 @@
 #ifndef TETRIS_TIMER_H
 #define TETRIS_TIMER_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
 typedef struct {
-    int timeout;
-    int delta;
+    uint32_t timeout;
+    uint32_t epoch;
+    bool paused;
 } tim3r_t;
 
-#define new_timer(timeout) ((tim3r_t) {timeout, 0})
-#define reset_timer(t) ((t).delta = 0)
-#define update_timer(t, dt) ((t).delta += dt)
-#define has_timed_out(t) ((t).delta >= (t).timeout)
+void init_timer_module();
+uint32_t get_ms_time();
+
+tim3r_t create_timer(int timeout);
+void pause_timer(tim3r_t *t);
+// unpauses it too
+void reset_timer(tim3r_t *t);
+bool has_timed_out(const tim3r_t *t);
 
 #endif // TETRIS_TIMER_H
