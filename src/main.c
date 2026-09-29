@@ -191,7 +191,7 @@ void process_input_event(const struct tb_event *e) {
     case TB_EVENT_RESIZE:
         break;
     case TB_EVENT_KEY:
-        process_key_event(e);
+        process_input_event(e);
         break;
     default:
         break;
