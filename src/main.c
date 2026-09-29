@@ -31,7 +31,8 @@ SEMITETRIS
 #define MS_PER_FRAME (1000 / FPS)
 
 static struct {
-    enum { PLAY, SEMI_TETRIS, TETRIS } state;
+    enum { PLAY, SEMI_TETRIS, TETRIS, OVER } state;
+    bool paused;
     int level;
     tim3r_t gravt_tmr;
     tim3r_t decay_tmr;
@@ -48,6 +49,7 @@ void init();
 void shutdown(int status);
 void process_input_event(const struct tb_event *e);
 void process_frame_event(int dt);
+void render();
 
 int main() {
     init();
@@ -65,6 +67,9 @@ int main() {
         
         int now = get_ms_time();
         process_frame_event(now - start);
+        tb_clear();
+        render();
+        tb_present();
     }
 
     shutdown(EXIT_SUCCESS);
@@ -85,6 +90,7 @@ void init() {
     init_timer_module();
 
     g.state = PLAY;
+    g.paused = false;
     g.level = 0;
     g.gravt_tmr = create_timer(1000);
     g.decay_tmr = create_timer(MS_PER_FRAME * 3);
@@ -115,12 +121,20 @@ void shutdown(int status) {
 }
 
 void process_key_event(const struct tb_event *e) {
+    if (e->ch == 'p') {
+        g.paused = !g.paused;
+        return;
+    } else if (e->ch == 'q') {
+        shutdown(EXIT_SUCCESS);
+    }
+
     switch (g.state) {
     case PLAY:
-        switch (e->ch) {
-        case 'q':
-            shutdown(EXIT_SUCCESS);
+        if (g.paused) {
             break;
+        }
+
+        switch (e->ch) {
         case 'r':
             rotate_tetromino(&g.ttm, 1);
             if (collide_tetromino(g.bg, &g.ttm)) {
@@ -167,38 +181,17 @@ void process_key_event(const struct tb_event *e) {
     case SEMI_TETRIS:
     case TETRIS:
         break;
+    case OVER:
+        // reset
+        break;
     }
 }
-
-void update(int dt);
-void render();
 
 void process_frame_event(int dt) {
-    update(dt);
-    render();
-}
-
-void process_input_event(const struct tb_event *e) {
-    switch (e->type) {
-    case TB_EVENT_MOUSE:
-        break;
-    case TB_EVENT_RESIZE:
-        break;
-    case TB_EVENT_KEY:
-        process_key_event(e);
-        break;
-    default:
-        break;
-    }
-}
-
-void update(int dt) {
     switch (g.state) {
     case TETRIS:
         // play STATE_sound and some flashy extra visuals
     case SEMI_TETRIS: {
-        // struct tb_event e;
-        // tb_peek_event(&e, 5000);
         if (!has_timed_out(&g.decay_tmr)) {
             break;
         }
@@ -229,6 +222,10 @@ void update(int dt) {
         break;
     }
     case PLAY:
+        if (g.paused) {
+            break;
+        }
+
         // gravity
         if (has_timed_out(&g.gravt_tmr)) {
             g.ttm.pos.y += 1;
@@ -249,15 +246,18 @@ void update(int dt) {
                 }
             }
         }
+
+        break;
+    case OVER:
+        // ...
         break;
     }
 }
 
 void render() {
-    tb_clear();
     switch (g.state) {
-    case SEMI_TETRIS:
     case TETRIS:
+    case SEMI_TETRIS:
         render_bg(g.bg);
         break;
     case PLAY:
@@ -265,6 +265,26 @@ void render() {
         render_tetromino(&g.ttm);
         render_tetromino(&g.ttm_next);
         break;
+    case OVER:
+        // ...
+        break;
     }
-    tb_present();
+
+    if (g.paused) {
+        tb_printf(28, 0, 0, 0, "paused");
+    }
+}
+
+void process_input_event(const struct tb_event *e) {
+    switch (e->type) {
+    case TB_EVENT_MOUSE:
+        break;
+    case TB_EVENT_RESIZE:
+        break;
+    case TB_EVENT_KEY:
+        process_key_event(e);
+        break;
+    default:
+        break;
+    }
 }
