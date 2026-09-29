@@ -1,9 +1,7 @@
 #include "timer.h"
-#include "config.h"
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <memory.h>
 #include <time.h>
 
 static struct timespec epoch;
