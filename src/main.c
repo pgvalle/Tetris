@@ -280,39 +280,46 @@ void process_frame_event(int dt) {
 void render_stats(int xoff, int yoff) {
     for (int i = 0; i < TETROMINO_TYPE_COUNT; i++) {
         const char *utf8 = get_tetromino_1x4_utf8(i);
-        tb_printf(2 * xoff, 2 * i + yoff + 1, 0, 0, "│ %s %06d │", utf8, g.ttm_stats[i]);
-        tb_printf(2 * xoff, 2 * i + yoff, 0, 0, "│             │");
+        tb_printf(xoff, 2 * i + yoff + 1, 0, 0, "│ %s %05d │", utf8, g.ttm_stats[i]);
+        tb_printf(xoff, 2 * i + yoff, 0, 0, "│            │");
     }
-    tb_printf(2 * xoff, yoff,      0, 0, "┌─── stats ───┐");
-    tb_printf(2 * xoff, yoff + 14, 0, 0, "└─────────────┘");
+    tb_printf(xoff, yoff,      0, 0, "┌── stats ───┐");
+    tb_printf(xoff, yoff + 14, 0, 0, "└────────────┘");
 }
 
-void render_next_ttm() {
-    tb_printf(2 * 20, 5, 0, 0, "┌─── next ───┐");
-    tb_printf(2 * 20, 6, 0, 0, "│            │");
-    tb_printf(2 * 20, 7, 0, 0, "│            │");
-    tb_printf(2 * 20, 8, 0, 0, "└────────────┘");
-    render_tetromino(23, 6, &g.ttm_next);
+void render_next_ttm(int xoff, int yoff) {
+    tb_printf(xoff, yoff + 0, 0, 0, "┌─── next ───┐");
+    tb_printf(xoff, yoff + 1, 0, 0, "│            │");
+    tb_printf(xoff, yoff + 2, 0, 0, "│            │");
+    tb_printf(xoff, yoff + 3, 0, 0, "└────────────┘");
+    switch (g.ttm_next.type) {
+    case TETROMINO_TYPE_I:
+    case TETROMINO_TYPE_O:
+        render_tetromino(xoff + 7, yoff + 1, &g.ttm_next);
+        break;
+    default:
+        render_tetromino(xoff + 6, yoff + 1, &g.ttm_next);
+    }
 }
 
 void render() {
     switch (g.state) {
     case TETRIS:
     case SEMI_TETRIS:
-        render_bg(0, 0, g.bg);
-        render_next_ttm();
+        render_bg(16, 0, g.bg);
+        render_next_ttm(0, 16);
         break;
     case PLAY:
-        render_bg(0, 0, g.bg);
-        render_tetromino(0, 0, &g.ttm);
-        render_next_ttm();
+        render_bg(16, 0, g.bg);
+        render_tetromino(16, 0, &g.ttm);
+        render_next_ttm(0, 16);
         break;
     case OVER:
         // ...
         break;
     }
 
-    render_stats(10, 10);
+    render_stats(0, 0);
 
     if (g.paused) {
         tb_printf(28, 0, 0, 0, "paused");
