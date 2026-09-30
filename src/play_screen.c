@@ -16,14 +16,17 @@ static struct {
     uint32_t ttm_statistics[TETROMINO_TYPE_COUNT];
     tim3r_t gravt_tmr;
     tim3r_t decay_tmr;
+    int lines;
     bool pause;
 } p;
 
 static void spawn_next_ttm();
 static void update();
 static void render();
+static void render_background_frame(int xoff, int yoff);
 static void render_next_ttm(int xoff, int yoff);
 static void render_ttm_statistics(int xoff, int yoff);
+static void render_lines(int xoff, int yoff);
 
 void init_play_screen() {
     p.state = STATE_PLAY;
@@ -34,6 +37,7 @@ void init_play_screen() {
     p.ttm_statistics[p.ttm.type]++;
     p.gravt_tmr = create_timer(750);
     p.decay_tmr = create_timer(75);
+    p.lines = 0;
     p.pause = false;
 }
 
@@ -141,6 +145,7 @@ static void update() {
                 p.bg[y][WIDTH2 + x] = BG_CLR;
                 p.bg[y][WIDTH2 - x - 1] = BG_CLR;
                 if (x == WIDTH2 - 1) {
+                    p.lines++;
                     p.bg[y][WIDTH - 1] = 0;
                     p.state = STATE_PLAY;
                 }
@@ -187,26 +192,27 @@ static void update() {
 
 static void render() {
     tb_clear();
-    switch (p.state) {
-    case STATE_TETRIS:
-    case STATE_SEMI_TETRIS:
-        render_background(16, 0, p.bg);
-        render_next_ttm(0, 16);
-        break;
-    case STATE_PLAY:
-        render_background(16, 0, p.bg);
-        render_tetromino(16, 0, &p.ttm);
-        render_next_ttm(0, 16);
-        break;
-    }
-
-    render_ttm_statistics(0, 0);
-    if (p.pause) tb_printf(23, 10, 0, 0, "PAUSE");
+    render_background(16, 1, p.bg);
+    if (p.state == STATE_PLAY) render_tetromino(16, 1, &p.ttm);
+    render_lines(0, 0);
+    render_background_frame(15, 0);
+    render_next_ttm(0, 3);
+    render_ttm_statistics(0, 7);
+    if (p.pause) tb_printf(24, 10, 0, 0, "PAUSED");
     tb_present();
 }
 
+static void render_background_frame(int xoff, int yoff) {
+    tb_printf(xoff, yoff, 0, 0, "┌────────────────────┐");
+    tb_printf(xoff, yoff + HEIGHT + 1, 0, 0, "└────────────────────┘");
+    for (int y = 0; y < HEIGHT; y++) {
+        tb_printf(xoff, yoff + y + 1, 0, 0, "│");
+        tb_printf(xoff + 21, yoff + y + 1, 0, 0, "│");
+    }
+}
+
 static void render_next_ttm(int xoff, int yoff) {
-    tb_printf(xoff, yoff + 0, 0, 0, "┌─── next ───┐");
+    tb_printf(xoff, yoff + 0, 0, 0, "┌─── NEXT ───┐");
     tb_printf(xoff, yoff + 1, 0, 0, "│            │");
     tb_printf(xoff, yoff + 2, 0, 0, "│            │");
     tb_printf(xoff, yoff + 3, 0, 0, "└────────────┘");
@@ -229,6 +235,12 @@ static void render_ttm_statistics(int xoff, int yoff) {
         tb_printf(xoff, 2 * i + yoff + 2, 0, 0, "│            │");
     }
 
-    tb_printf(xoff, yoff     , 0, 0, "┌── stats ───┐");
+    tb_printf(xoff, yoff     , 0, 0, "┌ STATISTICS ┐");
     tb_printf(xoff, yoff + 14, 0, 0, "└────────────┘");
+}
+
+static void render_lines(int xoff, int yoff) {
+    tb_printf(xoff, yoff    , 0, 0, "┌────────────┐");
+    tb_printf(xoff, yoff + 1, 0, 0, "│ LINES %04d │", p.lines);
+    tb_printf(xoff, yoff + 2, 0, 0, "└────────────┘");
 }
