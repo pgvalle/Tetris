@@ -1,7 +1,5 @@
-#include "background.h"
 #include "config.h"
-#include "point.h"
-#include "tetromino.h"
+#include "tetris.h"
 #include "timer.h"
 
 #include <miniaudio.h>
@@ -32,312 +30,95 @@ SEMITETRIS
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MS_PER_FRAME (1000 / FPS)
 
-static struct {
-    enum { PLAY, SEMI_TETRIS, TETRIS, OVER } state;
-    bool paused;
-    int level;
-    tim3r_t gravt_tmr;
-    tim3r_t decay_tmr;
-    tetromino_t ttm, ttm_next;
-    int ttm_stats[TETROMINO_TYPE_COUNT];
-    tetromino_color_t bg[HEIGHT][WIDTH];
+struct tetris_t t;
 
-    ma_engine ma_eng;
-    ma_sound sounds[3];
-    uint8_t selected_sound;
-} g;
-
-void spawn_next_ttm();
-
-void init();
-void shutdown(int status);
-void process_input_event(const struct tb_event *e);
-void process_frame_event(int dt);
-void render();
+static void init(enum tetris_screen_t s);
+static void process_input_event(enum tetris_screen_t s, const struct tb_event *e);
+static void process_frame_event(enum tetris_screen_t s, uint32_t delta);
 
 int main() {
-    init();
+    init(SCREEN_SPLASH);
+    init(SCREEN_PLAY);
 
+    enum tetris_screen_t s = t.screen; 
     while (true) {
         struct tb_event e;
-        int start = get_ms_time();
-        int timeout = MS_PER_FRAME;
+        uint32_t start = get_ms_time();
+        uint32_t timeout = MS_PER_FRAME;
 
         while (tb_peek_event(&e, timeout) != TB_ERR_NO_EVENT) {
-            process_input_event(&e);
-            int now = get_ms_time();
-            timeout = MAX(MS_PER_FRAME - now + start, 0);
+            process_input_event(s, &e);
+            uint32_t delta = get_ms_time() - start;
+            if (delta < MS_PER_FRAME) timeout -= delta;
+            else timeout = 0;
         }
 
-        int now = get_ms_time();
-        process_frame_event(now - start);
-        tb_clear();
-        render();
-        tb_present();
+        uint32_t delta = get_ms_time() - start;
+        process_frame_event(s, delta);
+
+        if (s != t.screen) {
+            s = t.screen;
+            init(s);
+        }
     }
 
     shutdown(EXIT_SUCCESS);
 }
 
-void spawn_next_ttm() {
-    g.ttm = g.ttm_next;
-    g.ttm.pos = create_point((WIDTH - 1) / 2, 0);
-    g.ttm_stats[g.ttm.type]++;
+void init(enum tetris_screen_t s) {
+    if (s == SCREEN_SPLASH) {
+        setlocale(LC_ALL, "");
+        srand(time(NULL));
 
-    g.ttm_next = create_tetromino(0, 0);
-}
+        tb_init();
+        init_timer_module();
 
-void init() {
-    setlocale(LC_ALL, "");
-    srand(time(NULL));
+        t.screen = SCREEN_PLAY;
+        t.level = 0;
 
-    tb_init();
-    init_timer_module();
+        ma_result result = ma_engine_init(NULL, &t.ma_eng);
+        assert(result == MA_SUCCESS && "error starting sound engine");
 
-    g.state = PLAY;
-    g.paused = false;
-    g.level = 0;
-    g.gravt_tmr = create_timer(750);
-    g.decay_tmr = create_timer(MS_PER_FRAME * 4);
+        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song1.mp3", 0, NULL, NULL,
+        //                         g.sounds + 0);
+        // ma_sound_set_looping(g.sounds + 0, true);
+        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song2.mp3", 0, NULL, NULL,
+        //                         g.sounds + 1);
+        // ma_sound_set_looping(g.sounds + 1, true);
+        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song3.mp3", 0, NULL, NULL,
+        //                         g.sounds + 2);
+        // ma_sound_set_looping(g.sounds + 2, true);
 
-    g.ttm = create_tetromino((WIDTH - 1) / 2, 0);
-    g.ttm_next = create_tetromino(0, 0);
-    memset(g.ttm_stats, 0, sizeof(g.ttm_stats));
-    g.ttm_stats[g.ttm.type]++;
+        // ma_sound_start(g.sounds + 0);
+    } else {
+        init_play_screen();
+    }
 
-    init_background(g.bg);
-
-    ma_result result = ma_engine_init(NULL, &g.ma_eng);
-    assert(result == MA_SUCCESS && "error starting sound engine");
-
-    ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song1.mp3", 0, NULL, NULL,
-                            g.sounds + 0);
-    ma_sound_set_looping(g.sounds + 0, true);
-    ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song2.mp3", 0, NULL, NULL,
-                            g.sounds + 1);
-    ma_sound_set_looping(g.sounds + 1, true);
-    ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song3.mp3", 0, NULL, NULL,
-                            g.sounds + 2);
-    ma_sound_set_looping(g.sounds + 2, true);
-
-    ma_sound_start(g.sounds + 0);
+    t.screen = s;
 }
 
 void shutdown(int status) {
-    ma_sound_uninit(g.sounds + 0);
-    ma_sound_uninit(g.sounds + 1);
-    ma_sound_uninit(g.sounds + 2);
-    ma_engine_uninit(&g.ma_eng);
+    // ma_sound_uninit(g.sounds + 0);
+    // ma_sound_uninit(g.sounds + 1);
+    // ma_sound_uninit(g.sounds + 2);
+    ma_engine_uninit(&t.ma_eng);
     tb_shutdown();
+    quit_play_screen();
     exit(status);
 }
 
-void process_key_event(const struct tb_event *e) {
-    if (e->ch == 'p') {
-        g.paused = !g.paused;
-        return;
-    } else if (e->ch == 'q') {
-        shutdown(EXIT_SUCCESS);
-    }
-
-    switch (g.state) {
-    case PLAY:
-        if (g.paused) {
-            break;
-        }
-
-        switch (e->ch) {
-        case 'x':
-            rotate_tetromino(&g.ttm, 1);
-            if (collide_tetromino(g.bg, &g.ttm)) {
-                rotate_tetromino(&g.ttm, 0);
-            } else {
-                ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "rotation.mp3",
-                                     NULL);
-            }
-            break;
-        case 'z':
-            rotate_tetromino(&g.ttm, 0);
-            if (collide_tetromino(g.bg, &g.ttm)) {
-                rotate_tetromino(&g.ttm, 1);
-            } else {
-                ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "rotation.mp3",
-                                     NULL);
-            }
-            break;
-        }
-
-        point_t prev_pos = g.ttm.pos;
-        g.ttm.pos.x += e->key == TB_KEY_ARROW_RIGHT ? 1 : 0;
-        g.ttm.pos.x -= e->key == TB_KEY_ARROW_LEFT ? 1 : 0;
-        g.ttm.pos.y += e->key == TB_KEY_ARROW_DOWN ? 1 : 0;
-        bool moved_down = g.ttm.pos.y != prev_pos.y;
-        bool moved_sideways = g.ttm.pos.x != prev_pos.x;
-
-        if (collide_tetromino(g.bg, &g.ttm)) {
-            g.ttm.pos = prev_pos;
-            if (moved_down) {
-                reset_timer(&g.gravt_tmr);
-                move_tetromino_to_background(g.bg, &g.ttm);
-                int a = verify_tetris(g.bg);
-                if (!a) {
-                    ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "placed.mp3",
-                                         NULL);
-                    spawn_next_ttm();
-                } else if (a == 1) {
-                    ma_engine_play_sound(&g.ma_eng,
-                                         SFX_BASE_DIR "semi-tetris.mp3", NULL);
-                    g.state = SEMI_TETRIS;
-                } else {
-                    ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "tetris.mp3",
-                                         NULL);
-                    g.state = TETRIS;
-                }
-            }
-        } else if (moved_sideways) {
-            ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "sideways.mp3", NULL);
-        }
-        break;
-    case SEMI_TETRIS:
-    case TETRIS:
-        break;
-    case OVER:
-        // reset
+void process_input_event(enum tetris_screen_t s, const struct tb_event *e) {
+    switch (s) {
+    case SCREEN_PLAY:
+        process_play_screen_input_event(e);
         break;
     }
 }
 
-#define WIDTH2 ((WIDTH - 1) / 2)
-
-void process_frame_event(int dt) {
-    switch (g.state) {
-    case TETRIS:
-        // play STATE_sound and some flashy extra visuals
-    case SEMI_TETRIS: {
-        if (!has_timed_out(&g.decay_tmr)) {
-            break;
-        }
-
-        reset_timer(&g.decay_tmr);
-        bool over = false;
-        for (int y = 0; y < HEIGHT; y++) {
-            if (g.bg[y][WIDTH - 1] != WIDTH - 1)
-                continue;
-            for (int x = 0; x < WIDTH2; x++) {
-                if (g.bg[y][x + WIDTH2] != BG_CLR) {
-                    g.bg[y][WIDTH2 - x - 1] = BG_CLR;
-                    g.bg[y][x + WIDTH2] = BG_CLR;
-                    if (x == WIDTH2 - 1) {
-                        g.bg[y][WIDTH - 1] = 0;
-                        over = true;
-                    }
-                    break;
-                }
-            }
-        }
-
-        if (over) {
-            compact_background(g.bg);
-            spawn_next_ttm();
-            g.state = PLAY;
-        }
-        break;
-    }
-    case PLAY:
-        if (g.paused) {
-            break;
-        }
-
-        // gravity
-        if (has_timed_out(&g.gravt_tmr)) {
-            g.ttm.pos.y += 1;
-            reset_timer(&g.gravt_tmr);
-            if (collide_tetromino(g.bg, &g.ttm)) {
-                g.ttm.pos.y -= 1;
-                move_tetromino_to_background(g.bg, &g.ttm);
-                int a = verify_tetris(g.bg);
-                if (!a) {
-                    ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "placed.mp3",
-                                         NULL);
-                    spawn_next_ttm();
-                } else if (a == 1) {
-                    ma_engine_play_sound(&g.ma_eng,
-                                         SFX_BASE_DIR "semi-tetris.mp3", NULL);
-                    g.state = SEMI_TETRIS;
-                } else {
-                    ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "tetris.mp3",
-                                         NULL);
-                    g.state = TETRIS;
-                }
-            }
-        }
-
-        break;
-    case OVER:
-        // ...
-        break;
-    }
-}
-
-void render_stats(int xoff, int yoff) {
-    for (int i = 0; i < TETROMINO_TYPE_COUNT; i++) {
-        const char *utf8 = get_tetromino_1x4_utf8(i);
-        tb_printf(xoff, 2 * i + yoff + 1, 0, 0, "│ %s %05d │", utf8, g.ttm_stats[i]);
-        tb_printf(xoff, 2 * i + yoff, 0, 0, "│            │");
-    }
-    tb_printf(xoff, yoff,      0, 0, "┌── stats ───┐");
-    tb_printf(xoff, yoff + 14, 0, 0, "└────────────┘");
-}
-
-void render_next_ttm(int xoff, int yoff) {
-    tb_printf(xoff, yoff + 0, 0, 0, "┌─── next ───┐");
-    tb_printf(xoff, yoff + 1, 0, 0, "│            │");
-    tb_printf(xoff, yoff + 2, 0, 0, "│            │");
-    tb_printf(xoff, yoff + 3, 0, 0, "└────────────┘");
-    switch (g.ttm_next.type) {
-    case TETROMINO_TYPE_I:
-    case TETROMINO_TYPE_O:
-        render_tetromino(xoff + 7, yoff + 1, &g.ttm_next);
-        break;
-    default:
-        render_tetromino(xoff + 6, yoff + 1, &g.ttm_next);
-    }
-}
-
-void render() {
-    switch (g.state) {
-    case TETRIS:
-    case SEMI_TETRIS:
-        render_background(16, 0, g.bg);
-        render_next_ttm(0, 16);
-        break;
-    case PLAY:
-        render_background(16, 0, g.bg);
-        render_tetromino(16, 0, &g.ttm);
-        render_next_ttm(0, 16);
-        break;
-    case OVER:
-        // ...
-        break;
-    }
-
-    render_stats(0, 0);
-
-    if (g.paused) {
-        tb_printf(28, 0, 0, 0, "paused");
-    }
-}
-
-void process_input_event(const struct tb_event *e) {
-    switch (e->type) {
-    case TB_EVENT_MOUSE:
-        break;
-    case TB_EVENT_RESIZE:
-        break;
-    case TB_EVENT_KEY:
-        process_key_event(e);
-        break;
-    default:
+void process_frame_event(enum tetris_screen_t s, uint32_t delta) {
+    switch (s) {
+    case SCREEN_PLAY:
+        process_play_screen_frame_event(delta);
         break;
     }
 }
