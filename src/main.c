@@ -84,7 +84,7 @@ void spawn_next_ttm() {
     g.ttm.pos = create_point((WIDTH - 1) / 2, 0);
     g.ttm_stats[g.ttm.type]++;
 
-    g.ttm_next = create_tetromino(15, 5);
+    g.ttm_next = create_tetromino(0, 0);
 }
 
 void init() {
@@ -101,7 +101,7 @@ void init() {
     g.decay_tmr = create_timer(MS_PER_FRAME * 3);
 
     g.ttm = create_tetromino((WIDTH - 1) / 2, 0);
-    g.ttm_next = create_tetromino(15, 5);
+    g.ttm_next = create_tetromino(0, 0);
     memset(g.ttm_stats, 0, sizeof(g.ttm_stats));
     g.ttm_stats[g.ttm.type]++;
 
@@ -277,32 +277,42 @@ void process_frame_event(int dt) {
     }
 }
 
-void render_stats() {
-
-    tb_printf(0, 0, 0, 0, "stats: ");
+void render_stats(int xoff, int yoff) {
     for (int i = 0; i < TETROMINO_TYPE_COUNT; i++) {
         const char *utf8 = get_tetromino_1x4_utf8(i);
-        tb_printf(0, i * 2, 0, 0, "%s %06d", utf8, g.ttm_stats[i]);
+        tb_printf(2 * xoff, 2 * i + yoff + 1, 0, 0, "│ %s %06d │", utf8, g.ttm_stats[i]);
+        tb_printf(2 * xoff, 2 * i + yoff, 0, 0, "│             │");
     }
+    tb_printf(2 * xoff, yoff,      0, 0, "┌─── stats ───┐");
+    tb_printf(2 * xoff, yoff + 14, 0, 0, "└─────────────┘");
+}
+
+void render_next_ttm() {
+    tb_printf(2 * 20, 5, 0, 0, "┌─── next ───┐");
+    tb_printf(2 * 20, 6, 0, 0, "│            │");
+    tb_printf(2 * 20, 7, 0, 0, "│            │");
+    tb_printf(2 * 20, 8, 0, 0, "└────────────┘");
+    render_tetromino(23, 6, &g.ttm_next);
 }
 
 void render() {
     switch (g.state) {
     case TETRIS:
     case SEMI_TETRIS:
-        render_bg(20, 0, g.bg);
+        render_bg(0, 0, g.bg);
+        render_next_ttm();
         break;
     case PLAY:
-        render_bg(20, 0, g.bg);
-        render_tetromino(20, 0, &g.ttm);
-        render_tetromino(20, 0, &g.ttm_next);
+        render_bg(0, 0, g.bg);
+        render_tetromino(0, 0, &g.ttm);
+        render_next_ttm();
         break;
     case OVER:
         // ...
         break;
     }
 
-    render_stats();
+    render_stats(10, 10);
 
     if (g.paused) {
         tb_printf(28, 0, 0, 0, "paused");
