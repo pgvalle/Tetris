@@ -4,7 +4,6 @@
 #define WIDTH 11 // 10 + 1 extra meta info for row
 #define HEIGHT 20
 #define BG_CLR TB_BLACK
-#define STRETCH_X // The game feels less narrowed
 #define FPS 50
 
 #define RES_BASE_DIR "./res/"

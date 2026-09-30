@@ -12,7 +12,7 @@ void init_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
             bg[y][x] = BG_CLR;
         }
         bg[y][WIDTH - 1] = 0;
-    }  
+    }
 }
 
 void move_tetromino_to_bg(tetromino_color_t bg[HEIGHT][WIDTH],
@@ -35,7 +35,7 @@ bool collide_tetromino(const tetromino_color_t bg[HEIGHT][WIDTH],
         if (pt.x < 0 || pt.x >= WIDTH - 1 || pt.y >= HEIGHT)
             return true;
         // bg collision
-        if (bg[pt.y][pt.x] != BG_CLR)
+        if (pt.y >= 0 && bg[pt.y][pt.x] != BG_CLR)
             return true;
     }
 
@@ -64,7 +64,7 @@ int verify_tetris(const tetromino_color_t bg[HEIGHT][WIDTH]) {
 void compact_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
     tetromino_color_t aux[HEIGHT][WIDTH];
     init_bg(aux);
-   
+
     int y2 = HEIGHT - 1;
     for (int y1 = HEIGHT - 1; y1 >= 0; y1--) {
         if (bg[y1][WIDTH - 1] != 0) {
@@ -79,12 +79,8 @@ void compact_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
 void render_bg(int xoff, int yoff, const tetromino_color_t bg[HEIGHT][WIDTH]) {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH - 1; x++) {
-            tetromino_color_t clr = bg[y][x];
-#ifdef STRETCH_X
-            tb_printf(2 * (x + xoff), y + yoff, 0, clr, clr == BG_CLR ? "  " : "▒▒");
-#else
-            tb_printf(x + xoff, y + yoff, 0, clr, clr == BG_CLR ? " " : "▒");
-#endif
+            tetromino_color_t c = bg[y][x];
+            tb_printf(2 * x + xoff, y + yoff, 0, c, c == BG_CLR ? "  " : "▒▒");
         }
     }
 }

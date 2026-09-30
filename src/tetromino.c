@@ -71,10 +71,6 @@ void render_tetromino(int xoff, int yoff, const tetromino_t *t) {
     const point_t *pts = get_tetromino_points(t->type);
     for (int i = 0; i < 4; i++) {
         point_t pt = rotate_n_move_point(pts[i], t->deg, t->pos);
-#ifdef STRETCH_X
-        tb_printf(2 * (pt.x + xoff), pt.y + yoff, 0, t->clr, "  ");
-#else
-        tb_printf(pt.x + xoff, pt.y + yoff, 0, t->clr, " ");
-#endif
+        tb_printf(2 * pt.x + xoff, pt.y + yoff, 0, t->clr, "  ");
     }
 }
