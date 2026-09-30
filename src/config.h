@@ -4,7 +4,7 @@
 #define WIDTH 11 // 10 + 1 extra meta info for row
 #define HEIGHT 20
 #define BG_CLR TB_BLACK
-#define FPS 50
+#define FPS 60
 
 #define RES_BASE_DIR "./res/"
 #define SFX_BASE_DIR RES_BASE_DIR "sfx/"
