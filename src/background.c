@@ -80,7 +80,7 @@ void render_background(int xoff, int yoff, const tetromino_color_t bg[HEIGHT][WI
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH - 1; x++) {
             tetromino_color_t c = bg[y][x];
-            tb_printf(2 * x + xoff, y + yoff, 0, c, c == BG_CLR ? "  " : "▒▒");
+            tb_printf(2 * x + xoff, y + yoff, 0, c, c == BG_CLR ? "  " : "░░");
         }
     }
 }
