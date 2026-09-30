@@ -14,6 +14,6 @@ bool collide_tetromino(const tetromino_color_t bg[HEIGHT][WIDTH],
 // 2 -> tetris, 1 -> rows completed, 0 -> nothing
 int verify_tetris(const tetromino_color_t bg[HEIGHT][WIDTH]);
 void compact_bg(tetromino_color_t bg[HEIGHT][WIDTH]);
-void render_bg(const tetromino_color_t bg[HEIGHT][WIDTH]);
+void render_bg(int xoff, int yoff, const tetromino_color_t bg[HEIGHT][WIDTH]);
 
 #endif // TETRIS_BG_H

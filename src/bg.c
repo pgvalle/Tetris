@@ -76,14 +76,14 @@ void compact_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
     memcpy(bg, aux, HEIGHT * sizeof(bg[0]));
 }
 
-void render_bg(const tetromino_color_t bg[HEIGHT][WIDTH]) {
+void render_bg(int xoff, int yoff, const tetromino_color_t bg[HEIGHT][WIDTH]) {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH - 1; x++) {
             tetromino_color_t clr = bg[y][x];
 #ifdef STRETCH_X
-            tb_printf(2 * x, y, 0, clr, clr == BG_CLR ? "  " : "x ");
+            tb_printf(2 * (x + xoff), y + yoff, 0, clr, clr == BG_CLR ? "  " : "░░");
 #else
-            tb_printf(x, y, 0, clr, clr == BG_CLR ? " " : "x");
+            tb_printf(x + xoff, y + yoff, 0, clr, clr == BG_CLR ? " " : "░");
 #endif
         }
     }
