@@ -81,9 +81,9 @@ void render_bg(int xoff, int yoff, const tetromino_color_t bg[HEIGHT][WIDTH]) {
         for (int x = 0; x < WIDTH - 1; x++) {
             tetromino_color_t clr = bg[y][x];
 #ifdef STRETCH_X
-            tb_printf(2 * (x + xoff), y + yoff, 0, clr, clr == BG_CLR ? "  " : "░░");
+            tb_printf(2 * (x + xoff), y + yoff, 0, clr, clr == BG_CLR ? "  " : "▒▒");
 #else
-            tb_printf(x + xoff, y + yoff, 0, clr, clr == BG_CLR ? " " : "░");
+            tb_printf(x + xoff, y + yoff, 0, clr, clr == BG_CLR ? " " : "▒");
 #endif
         }
     }
