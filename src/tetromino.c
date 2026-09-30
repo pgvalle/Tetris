@@ -1,5 +1,4 @@
 #include "tetromino.h"
-#include "config.h"
 #include "point.h"
 
 #include <termbox2.h>
