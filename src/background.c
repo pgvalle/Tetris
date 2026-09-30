@@ -63,7 +63,7 @@ int verify_tetris(const tetromino_color_t bg[HEIGHT][WIDTH]) {
 
 void compact_background(tetromino_color_t bg[HEIGHT][WIDTH]) {
     tetromino_color_t aux[HEIGHT][WIDTH];
-    init_bg(aux);
+    init_background(aux);
 
     int y2 = HEIGHT - 1;
     for (int y1 = HEIGHT - 1; y1 >= 0; y1--) {
