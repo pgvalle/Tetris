@@ -13,8 +13,8 @@ static point_t POINTS[][4] = {
     {{0, 0}, {0, 1}, {-1, 1}, {-1, 0}}  // O
 };
 
-static tetromino_color_t COLORS[] = {TB_RED,     TB_GREEN, TB_YELLOW, TB_BLUE,
-                                     TB_MAGENTA, TB_CYAN,  TB_WHITE};
+static tetromino_color_t COLORS[] = {TB_RED,     TB_GREEN, TB_YELLOW,
+                                     TB_BLUE,  TB_MAGENTA,   TB_CYAN};
 
 static const char* ASCII[7] = {
     "█▀▀▀",
@@ -36,7 +36,7 @@ static int random_range(int min, int max) {
 tetromino_t create_tetromino(int x, int y) {
     tetromino_t t;
     t.type = random_range(0, TETROMINO_TYPE_COUNT - 1);
-    t.clr = COLORS[random_range(0, 6)];
+    t.clr = COLORS[random_range(0, 5)];
     t.pos = (point_t){x, y};
     t.deg = 0;
     return t;
