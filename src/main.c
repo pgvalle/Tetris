@@ -1,4 +1,4 @@
-#include "bg.h"
+#include "background.h"
 #include "config.h"
 #include "point.h"
 #include "tetromino.h"
@@ -98,14 +98,14 @@ void init() {
     g.paused = false;
     g.level = 0;
     g.gravt_tmr = create_timer(750);
-    g.decay_tmr = create_timer(MS_PER_FRAME * 3);
+    g.decay_tmr = create_timer(MS_PER_FRAME * 4);
 
     g.ttm = create_tetromino((WIDTH - 1) / 2, 0);
     g.ttm_next = create_tetromino(0, 0);
     memset(g.ttm_stats, 0, sizeof(g.ttm_stats));
     g.ttm_stats[g.ttm.type]++;
 
-    init_bg(g.bg);
+    init_background(g.bg);
 
     ma_result result = ma_engine_init(NULL, &g.ma_eng);
     assert(result == MA_SUCCESS && "error starting sound engine");
@@ -178,7 +178,7 @@ void process_key_event(const struct tb_event *e) {
             g.ttm.pos = prev_pos;
             if (moved_down) {
                 reset_timer(&g.gravt_tmr);
-                move_tetromino_to_bg(g.bg, &g.ttm);
+                move_tetromino_to_background(g.bg, &g.ttm);
                 int a = verify_tetris(g.bg);
                 if (!a) {
                     ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "placed.mp3",
@@ -207,6 +207,8 @@ void process_key_event(const struct tb_event *e) {
     }
 }
 
+#define WIDTH2 ((WIDTH - 1) / 2)
+
 void process_frame_event(int dt) {
     switch (g.state) {
     case TETRIS:
@@ -221,11 +223,11 @@ void process_frame_event(int dt) {
         for (int y = 0; y < HEIGHT; y++) {
             if (g.bg[y][WIDTH - 1] != WIDTH - 1)
                 continue;
-
-            for (int x = 0; x < WIDTH - 1; x++) {
-                if (g.bg[y][x] != BG_CLR) {
-                    g.bg[y][x] = BG_CLR;
-                    if (x == WIDTH - 2) {
+            for (int x = 0; x < WIDTH2; x++) {
+                if (g.bg[y][x + WIDTH2] != BG_CLR) {
+                    g.bg[y][WIDTH2 - x - 1] = BG_CLR;
+                    g.bg[y][x + WIDTH2] = BG_CLR;
+                    if (x == WIDTH2 - 1) {
                         g.bg[y][WIDTH - 1] = 0;
                         over = true;
                     }
@@ -235,7 +237,7 @@ void process_frame_event(int dt) {
         }
 
         if (over) {
-            compact_bg(g.bg);
+            compact_background(g.bg);
             spawn_next_ttm();
             g.state = PLAY;
         }
@@ -252,7 +254,7 @@ void process_frame_event(int dt) {
             reset_timer(&g.gravt_tmr);
             if (collide_tetromino(g.bg, &g.ttm)) {
                 g.ttm.pos.y -= 1;
-                move_tetromino_to_bg(g.bg, &g.ttm);
+                move_tetromino_to_background(g.bg, &g.ttm);
                 int a = verify_tetris(g.bg);
                 if (!a) {
                     ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "placed.mp3",
@@ -306,11 +308,11 @@ void render() {
     switch (g.state) {
     case TETRIS:
     case SEMI_TETRIS:
-        render_bg(16, 0, g.bg);
+        render_background(16, 0, g.bg);
         render_next_ttm(0, 16);
         break;
     case PLAY:
-        render_bg(16, 0, g.bg);
+        render_background(16, 0, g.bg);
         render_tetromino(16, 0, &g.ttm);
         render_next_ttm(0, 16);
         break;

@@ -1,4 +1,4 @@
-#include "bg.h"
+#include "background.h"
 #include "config.h"
 #include "point.h"
 #include "tetromino.h"
@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <termbox2.h>
 
-void init_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
+void init_background(tetromino_color_t bg[HEIGHT][WIDTH]) {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH - 1; x++) {
             bg[y][x] = BG_CLR;
@@ -15,7 +15,7 @@ void init_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
     }
 }
 
-void move_tetromino_to_bg(tetromino_color_t bg[HEIGHT][WIDTH],
+void move_tetromino_to_background(tetromino_color_t bg[HEIGHT][WIDTH],
                           const tetromino_t *t) {
     const point_t *pts = get_tetromino_points(t->type);
     for (int i = 0; i < 4; i++) {
@@ -61,7 +61,7 @@ int verify_tetris(const tetromino_color_t bg[HEIGHT][WIDTH]) {
     return semi_tetris;
 }
 
-void compact_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
+void compact_background(tetromino_color_t bg[HEIGHT][WIDTH]) {
     tetromino_color_t aux[HEIGHT][WIDTH];
     init_bg(aux);
 
@@ -76,7 +76,7 @@ void compact_bg(tetromino_color_t bg[HEIGHT][WIDTH]) {
     memcpy(bg, aux, HEIGHT * sizeof(bg[0]));
 }
 
-void render_bg(int xoff, int yoff, const tetromino_color_t bg[HEIGHT][WIDTH]) {
+void render_background(int xoff, int yoff, const tetromino_color_t bg[HEIGHT][WIDTH]) {
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH - 1; x++) {
             tetromino_color_t c = bg[y][x];
