@@ -25,9 +25,10 @@ typedef struct {
     int deg;
 } tetromino_t;
 
-tetromino_t new_tetromino(int x, int y);
+tetromino_t create_tetromino(int x, int y);
 point_t *get_tetromino_points(tetromino_type_t tt);
+const char *get_tetromino_1x4_utf8(tetromino_type_t tt);
 void rotate_tetromino(tetromino_t *t, int cw);
-void render_tetromino(const tetromino_t *t);
+void render_tetromino(int xoff, int yoff, const tetromino_t *t);
 
 #endif // TETRIS_TETROMINO_H

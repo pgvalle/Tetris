@@ -17,6 +17,16 @@ static point_t POINTS[][4] = {
 static tetromino_color_t COLORS[] = {TB_RED,     TB_GREEN, TB_YELLOW, TB_BLUE,
                                      TB_MAGENTA, TB_CYAN,  TB_WHITE};
 
+static const char* ASCII[7] = {
+    "█▀▀▀",
+    "▀▀▀█",
+    " ▀█▄",
+    " ▄█▀",
+    "▀▀▀▀",
+    " ▀█▀",
+    " ██ ",
+};
+
 // to avoid modulo bias
 static int random_range(int min, int max) {
     float random = 1.0 * rand() / RAND_MAX;
@@ -24,7 +34,7 @@ static int random_range(int min, int max) {
     return min + random * range;
 }
 
-tetromino_t new_tetromino(int x, int y) {
+tetromino_t create_tetromino(int x, int y) {
     tetromino_t t;
     t.type = random_range(0, TETROMINO_TYPE_COUNT - 1);
     t.clr = COLORS[random_range(0, 6)];
@@ -53,14 +63,18 @@ void rotate_tetromino(tetromino_t *t, int cw) {
     }
 }
 
-void render_tetromino(const tetromino_t *t) {
+const char *get_tetromino_1x4_utf8(tetromino_type_t tt) {
+    return ASCII[tt];
+}
+
+void render_tetromino(int xoff, int yoff, const tetromino_t *t) {
     const point_t *pts = get_tetromino_points(t->type);
     for (int i = 0; i < 4; i++) {
         point_t pt = rotate_n_move_point(pts[i], t->deg, t->pos);
 #ifdef STRETCH_X
-        tb_printf(2 * pt.x, pt.y, 0, t->clr, "  ");
+        tb_printf(2 * (pt.x + xoff), pt.y + yoff, 0, t->clr, "  ");
 #else
-        tb_printf(pt.x, pt.y, 0, t->clr, " ");
+        tb_printf(pt.x + xoff, pt.y + yoff, 0, t->clr, " ");
 #endif
     }
 }
