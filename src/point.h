@@ -5,6 +5,7 @@ typedef struct {
     int x, y;
 } point_t;
 
+#define create_point(x, y) ((point_t) {x, y})
 point_t rotate_n_move_point(point_t pt, int deg, point_t off);
 
 #endif // TETRIS_POINT_H
