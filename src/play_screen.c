@@ -36,8 +36,8 @@ void init_play_screen() {
     p.next_ttm = create_tetromino(0, 0);
     memset(p.ttm_statistics, 0, sizeof(p.ttm_statistics));
     p.ttm_statistics[p.ttm.type]++;
-    p.gravt_tmr = create_timer(750);
-    p.decay_tmr = create_timer(75);
+    p.gravt_tmr = create_timer(800);
+    p.decay_tmr = create_timer(80);
     p.decay_highlight = false;
     p.lines = 0;
     p.pause = false;
@@ -50,6 +50,8 @@ void process_play_screen_input_event(const struct tb_event *e) {
 
     if (e->ch == 'p') {
         p.pause = !p.pause;
+        p.gravt_tmr.paused = p.pause;
+        p.decay_tmr.paused = p.pause;
         return;
     } else if (e->ch == 'q') {
         shutdown(EXIT_SUCCESS);
@@ -120,7 +122,9 @@ void process_play_screen_input_event(const struct tb_event *e) {
     }
 }
 
-void process_play_screen_frame_event(uint32_t _) {
+void process_play_screen_frame_event(uint32_t delta) {
+    update_timer(&p.gravt_tmr, delta);
+    update_timer(&p.decay_tmr, delta);
     update();
     render();
 }
@@ -200,7 +204,8 @@ static void render() {
     tb_clear();
     switch (p.state) {
     case STATE_PLAY:
-        render_background(17, 1, p.bg);
+        if (!p.pause) render_background(17, 1, p.bg);
+        else render_background_highlighted(17, 1, p.bg);
         render_tetromino(17, 1, &p.ttm);
         render_next_tetromino(1, 3);
         break;

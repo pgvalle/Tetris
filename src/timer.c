@@ -21,7 +21,7 @@ uint32_t get_ms_time() {
 tim3r_t create_timer(int timeout) {
     tim3r_t t;
     t.timeout = timeout;
-    t.epoch = get_ms_time();
+    t.elapsed = 0;
     t.paused = false;
     return t;
 }
@@ -31,11 +31,14 @@ void pause_timer(tim3r_t *t) {
 }
 
 void reset_timer(tim3r_t *t) {
-    t->epoch = get_ms_time();
+    t->elapsed = 0;
     t->paused = false;
 }
 
+void update_timer(tim3r_t *t, uint32_t delta) {
+    if (!t->paused) t->elapsed += delta;
+}
+
 bool has_timed_out(const tim3r_t *t) {
-    uint32_t now = get_ms_time();
-    return now - t->epoch >= t->timeout;
+    return t->elapsed >= t->timeout;
 }
