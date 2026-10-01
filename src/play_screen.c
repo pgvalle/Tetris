@@ -228,19 +228,19 @@ static void render() {
 }
 
 static void render_background_frame(int xoff, int yoff) {
-    tb_printf(xoff, yoff, 0, 0, "┌────────────────────┐");
-    tb_printf(xoff, yoff + HEIGHT + 1, 0, 0, "└────────────────────┘");
+    tb_printf(xoff, yoff, 0, 0, TL HH HH HH HH HH HH HH HH HH HH TR); 
+    tb_printf(xoff, yoff + HEIGHT + 1, 0, 0, BL HH HH HH HH HH HH HH HH HH HH BR);
     for (int y = 0; y < HEIGHT; y++) {
-        tb_printf(xoff, yoff + y + 1, 0, 0, "│");
-        tb_printf(xoff + 21, yoff + y + 1, 0, 0, "│");
+        tb_printf(xoff, yoff + y + 1, 0, 0, V);
+        tb_printf(xoff + 21, yoff + y + 1, 0, 0, V);
     }
 }
 
 static void render_next_tetromino(int xoff, int yoff) {
-    tb_printf(xoff, yoff + 0, 0, 0, "┌─── NEXT ───┐");
-    tb_printf(xoff, yoff + 1, 0, 0, "│            │");
-    tb_printf(xoff, yoff + 2, 0, 0, "│            │");
-    tb_printf(xoff, yoff + 3, 0, 0, "└────────────┘");
+    tb_printf(xoff, yoff + 0, 0, 0, TL HH H " NEXT " H HH TR);
+    tb_printf(xoff, yoff + 1, 0, 0, V "            " V);
+    tb_printf(xoff, yoff + 2, 0, 0, V "            " V);
+    tb_printf(xoff, yoff + 3, 0, 0, BL HH HH HH HH HH HH BR);
 
     switch (p.next_ttm.type) {
     case TETROMINO_TYPE_I:
@@ -256,16 +256,16 @@ static void render_tetromino_statistics(int xoff, int yoff) {
     for (int i = 0; i < TETROMINO_TYPE_COUNT; i++) {
         const char *utf8 = get_tetromino_1x4_utf8(i);
         uint32_t stats = p.ttm_statistics[i];
-        tb_printf(xoff, 2 * i + yoff + 1, 0, 0, "│ %s %05d │", utf8, stats);
-        tb_printf(xoff, 2 * i + yoff + 2, 0, 0, "│            │");
+        tb_printf(xoff, 2 * i + yoff + 1, 0, 0, V " %s %05d " V, utf8, stats);
+        tb_printf(xoff, 2 * i + yoff + 2, 0, 0, V "            " V);
     }
 
-    tb_printf(xoff, yoff     , 0, 0, "┌ STATISTICS ┐");
-    tb_printf(xoff, yoff + 14, 0, 0, "└────────────┘");
+    tb_printf(xoff, yoff +  0, 0, 0, TL " STATISTICS " TR);
+    tb_printf(xoff, yoff + 14, 0, 0, BL HH HH HH HH HH HH BR);
 }
 
 static void render_lines(int xoff, int yoff) {
-    tb_printf(xoff, yoff    , 0, 0, "┌────────────┐");
-    tb_printf(xoff, yoff + 1, 0, 0, "│ LINES %04d │", p.lines);
-    tb_printf(xoff, yoff + 2, 0, 0, "└────────────┘");
+    tb_printf(xoff, yoff + 0, 0, 0, TL HH HH HH HH HH HH TR);
+    tb_printf(xoff, yoff + 1, 0, 0, V " LINES %04d " V, p.lines);
+    tb_printf(xoff, yoff + 2, 0, 0, BL HH HH HH HH HH HH BR);
 }

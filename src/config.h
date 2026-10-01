@@ -9,4 +9,13 @@
 #define RES_BASE_DIR "./res/"
 #define SFX_BASE_DIR RES_BASE_DIR "sfx/"
 
+// border style
+#define H  "━"
+#define HH "━━"
+#define V  "┃"
+#define TL "┏"
+#define TR "┓"
+#define BR "┛"
+#define BL "┗"
+
 #endif // TETRIS_CONFIG_H
