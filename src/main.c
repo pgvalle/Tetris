@@ -33,6 +33,7 @@ SEMITETRIS
 struct tetris_t t = {.init = false};
 
 static void init(enum tetris_screen_t s);
+static void quit(enum tetris_screen_t s);
 static void process_input_event(enum tetris_screen_t s, const struct tb_event *e);
 static void process_frame_event(enum tetris_screen_t s, uint32_t delta);
 
@@ -56,8 +57,9 @@ int main() {
         process_frame_event(s, delta);
 
         if (s != t.screen) {
+            quit(s);
+            init(t.screen);
             s = t.screen;
-            init(s);
         }
     }
 
@@ -95,6 +97,14 @@ void init(enum tetris_screen_t s) {
     }
 
     t.screen = s;
+}
+
+static void quit(enum tetris_screen_t s) {
+    switch (s) {
+    case SCREEN_PLAY:
+        quit_play_screen();
+        break;
+    }
 }
 
 void shutdown(int status) {
