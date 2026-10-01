@@ -25,9 +25,8 @@ static void spawn_next_ttm();
 static void update();
 static void render();
 static void render_background_frame(int xoff, int yoff);
-static void render_background_highlight(int xoff, int yoff);
-static void render_next_ttm(int xoff, int yoff);
-static void render_ttm_statistics(int xoff, int yoff);
+static void render_next_tetromino(int xoff, int yoff);
+static void render_tetromino_statistics(int xoff, int yoff);
 static void render_lines(int xoff, int yoff);
 
 void init_play_screen() {
@@ -199,14 +198,27 @@ static void update() {
 
 static void render() {
     tb_clear();
-    render_background(16, 1, p.bg);
-    if (p.state == STATE_PLAY) render_tetromino(16, 1, &p.ttm);
-    render_lines(0, 0);
-    render_background_frame(15, 0);
-    if (p.decay_highlight)  render_background_highlight(16, 1);
-    render_next_ttm(0, 3);
-    render_ttm_statistics(0, 7);
-    if (p.pause) tb_printf(23, 10, 0, 0, "PAUSED");
+    switch (p.state) {
+    case STATE_PLAY:
+        render_background(17, 1, p.bg);
+        render_tetromino(17, 1, &p.ttm);
+        render_next_tetromino(1, 3);
+        break;
+    case STATE_SEMI_TETRIS:
+        render_background(17, 1, p.bg);
+        render_next_tetromino(1, 3);
+        break;
+    case STATE_TETRIS:
+        if (!p.decay_highlight) render_background(17, 1, p.bg);
+        else render_background_highlighted(17, 1, p.bg);
+        render_next_tetromino(1, 3);
+        break;
+    }
+
+    render_background_frame(16, 0);
+    render_lines(1, 0);
+    render_tetromino_statistics(1, 7);
+    if (p.pause) tb_printf(24, 10, 0, 0, "PAUSED");
     tb_present();
 }
 
@@ -219,13 +231,7 @@ static void render_background_frame(int xoff, int yoff) {
     }
 }
 
-static void render_background_highlight(int xoff, int yoff) {
-    for (int y = 0; y < HEIGHT; y++) {
-        tb_printf(xoff, yoff + y, 0, 0, "░░░░░░░░░░░░░░░░░░░░");
-    }
-}
-
-static void render_next_ttm(int xoff, int yoff) {
+static void render_next_tetromino(int xoff, int yoff) {
     tb_printf(xoff, yoff + 0, 0, 0, "┌─── NEXT ───┐");
     tb_printf(xoff, yoff + 1, 0, 0, "│            │");
     tb_printf(xoff, yoff + 2, 0, 0, "│            │");
@@ -241,7 +247,7 @@ static void render_next_ttm(int xoff, int yoff) {
     }
 }
 
-static void render_ttm_statistics(int xoff, int yoff) {
+static void render_tetromino_statistics(int xoff, int yoff) {
     for (int i = 0; i < TETROMINO_TYPE_COUNT; i++) {
         const char *utf8 = get_tetromino_1x4_utf8(i);
         uint32_t stats = p.ttm_statistics[i];

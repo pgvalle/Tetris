@@ -16,5 +16,7 @@ int verify_tetris(const tetromino_color_t bg[HEIGHT][WIDTH]);
 void compact_background(tetromino_color_t bg[HEIGHT][WIDTH]);
 void render_background(int xoff, int yoff,
                        const tetromino_color_t bg[HEIGHT][WIDTH]);
+void render_background_highlighted(int xoff, int yoff,
+                                   const tetromino_color_t bg[HEIGHT][WIDTH]);
 
 #endif // TETRIS_BG_H
