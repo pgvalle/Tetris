@@ -16,6 +16,7 @@ struct tetris_t {
     int score;
     int level;
     ma_engine ma_eng;
+    bool init;
 };
 
 extern struct tetris_t t;

@@ -30,14 +30,13 @@ SEMITETRIS
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MS_PER_FRAME (1000 / FPS)
 
-struct tetris_t t;
+struct tetris_t t = {.init = false};
 
 static void init(enum tetris_screen_t s);
 static void process_input_event(enum tetris_screen_t s, const struct tb_event *e);
 static void process_frame_event(enum tetris_screen_t s, uint32_t delta);
 
 int main() {
-    init(SCREEN_SPLASH);
     init(SCREEN_PLAY);
 
     enum tetris_screen_t s = t.screen; 
@@ -66,16 +65,13 @@ int main() {
 }
 
 void init(enum tetris_screen_t s) {
-    if (s == SCREEN_SPLASH) {
+    if (!t.init) {
         setlocale(LC_ALL, "");
         srand(time(NULL));
-
         tb_init();
         init_timer_module();
 
-        t.screen = SCREEN_PLAY;
         t.level = 0;
-
         ma_result result = ma_engine_init(NULL, &t.ma_eng);
         assert(result == MA_SUCCESS && "error starting sound engine");
 
@@ -90,8 +86,12 @@ void init(enum tetris_screen_t s) {
         // ma_sound_set_looping(g.sounds + 2, true);
 
         // ma_sound_start(g.sounds + 0);
-    } else {
+    }
+
+    switch (s) {
+    case SCREEN_PLAY:
         init_play_screen();
+        break;
     }
 
     t.screen = s;
