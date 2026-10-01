@@ -94,6 +94,10 @@ void init(enum tetris_screen_t s) {
     case SCREEN_PLAY:
         init_play_screen();
         break;
+    case SCREEN_SPLASH:
+    case SCREEN_MENU:
+    case SCREEN_OVER:
+        break;
     }
 
     t.screen = s;
@@ -103,6 +107,10 @@ static void quit(enum tetris_screen_t s) {
     switch (s) {
     case SCREEN_PLAY:
         quit_play_screen();
+        break;
+    case SCREEN_SPLASH:
+    case SCREEN_MENU:
+    case SCREEN_OVER:
         break;
     }
 }
@@ -122,6 +130,10 @@ void process_input_event(enum tetris_screen_t s, const struct tb_event *e) {
     case SCREEN_PLAY:
         process_play_screen_input_event(e);
         break;
+    case SCREEN_SPLASH:
+    case SCREEN_MENU:
+    case SCREEN_OVER:
+        break;
     }
 }
 
@@ -129,6 +141,10 @@ void process_frame_event(enum tetris_screen_t s, uint32_t delta) {
     switch (s) {
     case SCREEN_PLAY:
         process_play_screen_frame_event(delta);
+        break;
+    case SCREEN_SPLASH:
+    case SCREEN_MENU:
+    case SCREEN_OVER:
         break;
     }
 }
