@@ -206,7 +206,7 @@ static void render() {
     if (p.decay_highlight)  render_background_highlight(16, 1);
     render_next_ttm(0, 3);
     render_ttm_statistics(0, 7);
-    if (p.pause) tb_printf(24, 10, 0, 0, "PAUSED");
+    if (p.pause) tb_printf(23, 10, 0, 0, "PAUSED");
     tb_present();
 }
 
