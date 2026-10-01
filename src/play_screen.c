@@ -43,10 +43,12 @@ void init_play_screen() {
     p.pause = false;
 }
 
-void quit_play_screen() {}
+void quit_play_screen() {
+}
 
 void process_play_screen_input_event(const struct tb_event *e) {
-    if (e->type != TB_EVENT_KEY) return;
+    if (e->type != TB_EVENT_KEY)
+        return;
 
     if (e->ch == 'p') {
         p.pause = !p.pause;
@@ -59,7 +61,8 @@ void process_play_screen_input_event(const struct tb_event *e) {
 
     switch (p.state) {
     case STATE_PLAY:
-        if (p.pause) break;
+        if (p.pause)
+            break;
 
         switch (e->ch) {
         case 'x':
@@ -96,16 +99,19 @@ void process_play_screen_input_event(const struct tb_event *e) {
                 move_tetromino_to_background(p.bg, &p.ttm);
                 int tetris = verify_tetris(p.bg);
                 if (!tetris) {
-                    // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "placed.mp3",
+                    // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR
+                    // "placed.mp3",
                     //                      NULL);
                     spawn_next_ttm();
                 } else if (tetris == 1) {
                     // ma_engine_play_sound(&g.ma_eng,
-                    //                      SFX_BASE_DIR "semi-tetris.mp3", NULL);
+                    //                      SFX_BASE_DIR "semi-tetris.mp3",
+                    //                      NULL);
                     p.state = STATE_SEMI_TETRIS;
                     reset_timer(&p.decay_tmr);
                 } else {
-                    // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "tetris.mp3",
+                    // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR
+                    // "tetris.mp3",
                     //                      NULL);
                     p.state = STATE_TETRIS;
                     p.decay_highlight = true;
@@ -113,7 +119,8 @@ void process_play_screen_input_event(const struct tb_event *e) {
                 }
             }
         } else if (moved_sideways) {
-            // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "sideways.mp3", NULL);
+            // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "sideways.mp3",
+            // NULL);
         }
         break;
     case STATE_SEMI_TETRIS:
@@ -140,15 +147,19 @@ static void update() {
     switch (p.state) {
     case STATE_TETRIS:
     case STATE_SEMI_TETRIS:
-        if (!has_timed_out(&p.decay_tmr)) break;
-        if (p.state == STATE_TETRIS) p.decay_highlight = !p.decay_highlight;
+        if (!has_timed_out(&p.decay_tmr))
+            break;
+        if (p.state == STATE_TETRIS)
+            p.decay_highlight = !p.decay_highlight;
 
         reset_timer(&p.decay_tmr);
         for (int y = 0; y < HEIGHT; y++) {
-            if (p.bg[y][WIDTH - 1] != WIDTH - 1) continue;
+            if (p.bg[y][WIDTH - 1] != WIDTH - 1)
+                continue;
 
             for (int x = 0; x < WIDTH2; x++) {
-                if (p.bg[y][WIDTH2 + x] == BG_CLR) continue;
+                if (p.bg[y][WIDTH2 + x] == BG_CLR)
+                    continue;
 
                 p.bg[y][WIDTH2 + x] = BG_CLR;
                 p.bg[y][WIDTH2 - x - 1] = BG_CLR;
@@ -168,13 +179,16 @@ static void update() {
         }
         break;
     case STATE_PLAY:
-        if (p.pause) break;
-        if (!has_timed_out(&p.gravt_tmr)) break;
-        
+        if (p.pause)
+            break;
+        if (!has_timed_out(&p.gravt_tmr))
+            break;
+
         p.ttm.pos.y += 1;
         reset_timer(&p.gravt_tmr);
-        if (!collide_tetromino(p.bg, &p.ttm)) break;
-        
+        if (!collide_tetromino(p.bg, &p.ttm))
+            break;
+
         p.ttm.pos.y -= 1;
         move_tetromino_to_background(p.bg, &p.ttm);
 
@@ -204,8 +218,10 @@ static void render() {
     tb_clear();
     switch (p.state) {
     case STATE_PLAY:
-        if (!p.pause) render_background(17, 1, p.bg);
-        else render_background_highlighted(17, 1, p.bg);
+        if (!p.pause)
+            render_background(17, 1, p.bg);
+        else
+            render_background_highlighted(17, 1, p.bg);
         render_tetromino(17, 1, &p.ttm);
         render_next_tetromino(1, 3);
         break;
@@ -214,8 +230,10 @@ static void render() {
         render_next_tetromino(1, 3);
         break;
     case STATE_TETRIS:
-        if (!p.decay_highlight) render_background(17, 1, p.bg);
-        else render_background_highlighted(17, 1, p.bg);
+        if (!p.decay_highlight)
+            render_background(17, 1, p.bg);
+        else
+            render_background_highlighted(17, 1, p.bg);
         render_next_tetromino(1, 3);
         break;
     }
@@ -223,13 +241,15 @@ static void render() {
     render_background_frame(16, 0);
     render_lines(1, 0);
     render_tetromino_statistics(1, 7);
-    if (p.pause) tb_printf(24, 10, 0, 0, "PAUSED");
+    if (p.pause)
+        tb_printf(24, 10, 0, 0, "PAUSED");
     tb_present();
 }
 
 static void render_background_frame(int xoff, int yoff) {
-    tb_printf(xoff, yoff, 0, 0, TL HH HH HH HH HH HH HH HH HH HH TR); 
-    tb_printf(xoff, yoff + HEIGHT + 1, 0, 0, BL HH HH HH HH HH HH HH HH HH HH BR);
+    tb_printf(xoff, yoff, 0, 0, TL HH HH HH HH HH HH HH HH HH HH TR);
+    tb_printf(xoff, yoff + HEIGHT + 1, 0, 0,
+              BL HH HH HH HH HH HH HH HH HH HH BR);
     for (int y = 0; y < HEIGHT; y++) {
         tb_printf(xoff, yoff + y + 1, 0, 0, V);
         tb_printf(xoff + 21, yoff + y + 1, 0, 0, V);
@@ -260,7 +280,7 @@ static void render_tetromino_statistics(int xoff, int yoff) {
         tb_printf(xoff, 2 * i + yoff + 2, 0, 0, V "            " V);
     }
 
-    tb_printf(xoff, yoff +  0, 0, 0, TL " STATISTICS " TR);
+    tb_printf(xoff, yoff + 0, 0, 0, TL " STATISTICS " TR);
     tb_printf(xoff, yoff + 14, 0, 0, BL HH HH HH HH HH HH BR);
 }
 

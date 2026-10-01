@@ -13,24 +13,17 @@ static point_t POINTS[][4] = {
     {{0, 0}, {0, 1}, {-1, 1}, {-1, 0}}  // O
 };
 
-static tetromino_color_t COLORS[] = {TB_RED,     TB_GREEN, TB_YELLOW,
-                                     TB_BLUE,  TB_MAGENTA,   TB_CYAN};
+static tetromino_color_t COLORS[] = {TB_RED,  TB_GREEN,   TB_YELLOW,
+                                     TB_BLUE, TB_MAGENTA, TB_CYAN};
 
-static const char* ASCII[7] = {
-    "█▀▀▀",
-    "▀▀▀█",
-    " ▀█▄",
-    " ▄█▀",
-    "▀▀▀▀",
-    " ▀█▀",
-    " ██ ",
+static const char *ASCII[7] = {
+    "█▀▀▀", "▀▀▀█", " ▀█▄", " ▄█▀", "▀▀▀▀", " ▀█▀", " ██ ",
 };
 
-// to avoid modulo bias
-static int random_range(int min, int max) {
+static int random_range(int low, int high) {
     float random = 1.0 * rand() / RAND_MAX;
-    int range = max - min + 1;
-    return min + random * range;
+    int range = high - low + 1;
+    return low + random * range;
 }
 
 tetromino_t create_tetromino(int x, int y) {
@@ -42,7 +35,9 @@ tetromino_t create_tetromino(int x, int y) {
     return t;
 }
 
-point_t *get_tetromino_points(tetromino_type_t tt) { return POINTS[tt]; }
+point_t *get_tetromino_points(tetromino_type_t tt) {
+    return POINTS[tt];
+}
 
 void rotate_tetromino(tetromino_t *t, int cw) {
     switch (t->type) {

@@ -1,7 +1,7 @@
 #include "timer.h"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <time.h>
 
 static struct timespec epoch;
@@ -36,7 +36,8 @@ void reset_timer(tim3r_t *t) {
 }
 
 void update_timer(tim3r_t *t, uint32_t delta) {
-    if (!t->paused) t->elapsed += delta;
+    if (!t->paused)
+        t->elapsed += delta;
 }
 
 bool has_timed_out(const tim3r_t *t) {

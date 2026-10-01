@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <termbox2.h>
 
-#include <locale.h>
 #include <assert.h>
+#include <locale.h>
 #include <stdbool.h>
 #include <time.h>
 
@@ -34,13 +34,14 @@ struct tetris_t t = {.init = false};
 
 static void init(enum tetris_screen_t s);
 static void quit(enum tetris_screen_t s);
-static void process_input_event(enum tetris_screen_t s, const struct tb_event *e);
+static void process_input_event(enum tetris_screen_t s,
+                                const struct tb_event *e);
 static void process_frame_event(enum tetris_screen_t s, uint32_t delta);
 
 int main() {
     init(SCREEN_PLAY);
 
-    enum tetris_screen_t s = t.screen; 
+    enum tetris_screen_t s = t.screen;
     while (true) {
         struct tb_event e;
         uint32_t start = get_ms_time();
@@ -49,8 +50,10 @@ int main() {
         while (tb_peek_event(&e, timeout) != TB_ERR_NO_EVENT) {
             process_input_event(s, &e);
             uint32_t delta = get_ms_time() - start;
-            if (delta < MS_PER_FRAME) timeout -= delta;
-            else timeout = 0;
+            if (delta < MS_PER_FRAME)
+                timeout -= delta;
+            else
+                timeout = 0;
         }
 
         uint32_t delta = get_ms_time() - start;
@@ -77,13 +80,16 @@ void init(enum tetris_screen_t s) {
         ma_result result = ma_engine_init(NULL, &t.ma_eng);
         assert(result == MA_SUCCESS && "error starting sound engine");
 
-        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song1.mp3", 0, NULL, NULL,
+        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song1.mp3", 0, NULL,
+        // NULL,
         //                         g.sounds + 0);
         // ma_sound_set_looping(g.sounds + 0, true);
-        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song2.mp3", 0, NULL, NULL,
+        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song2.mp3", 0, NULL,
+        // NULL,
         //                         g.sounds + 1);
         // ma_sound_set_looping(g.sounds + 1, true);
-        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song3.mp3", 0, NULL, NULL,
+        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song3.mp3", 0, NULL,
+        // NULL,
         //                         g.sounds + 2);
         // ma_sound_set_looping(g.sounds + 2, true);
 

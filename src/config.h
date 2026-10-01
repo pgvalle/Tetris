@@ -10,9 +10,9 @@
 #define SFX_BASE_DIR RES_BASE_DIR "sfx/"
 
 // border style
-#define H  "━"
+#define H "━"
 #define HH "━━"
-#define V  "┃"
+#define V "┃"
 #define TL "┏"
 #define TR "┓"
 #define BR "┛"
