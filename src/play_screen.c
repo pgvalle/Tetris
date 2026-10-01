@@ -16,6 +16,7 @@ static struct {
     uint32_t ttm_statistics[TETROMINO_TYPE_COUNT];
     tim3r_t gravt_tmr;
     tim3r_t decay_tmr;
+    bool decay_highlight;
     int lines;
     bool pause;
 } p;
@@ -24,6 +25,7 @@ static void spawn_next_ttm();
 static void update();
 static void render();
 static void render_background_frame(int xoff, int yoff);
+static void render_background_highlight(int xoff, int yoff);
 static void render_next_ttm(int xoff, int yoff);
 static void render_ttm_statistics(int xoff, int yoff);
 static void render_lines(int xoff, int yoff);
@@ -37,6 +39,7 @@ void init_play_screen() {
     p.ttm_statistics[p.ttm.type]++;
     p.gravt_tmr = create_timer(750);
     p.decay_tmr = create_timer(75);
+    p.decay_highlight = false;
     p.lines = 0;
     p.pause = false;
 }
@@ -104,6 +107,7 @@ void process_play_screen_input_event(const struct tb_event *e) {
                     // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "tetris.mp3",
                     //                      NULL);
                     p.state = STATE_TETRIS;
+                    p.decay_highlight = true;
                     reset_timer(&p.decay_tmr);
                 }
             }
@@ -134,6 +138,7 @@ static void update() {
     case STATE_TETRIS:
     case STATE_SEMI_TETRIS:
         if (!has_timed_out(&p.decay_tmr)) break;
+        if (p.state == STATE_TETRIS) p.decay_highlight = !p.decay_highlight;
 
         reset_timer(&p.decay_tmr);
         for (int y = 0; y < HEIGHT; y++) {
@@ -145,9 +150,10 @@ static void update() {
                 p.bg[y][WIDTH2 + x] = BG_CLR;
                 p.bg[y][WIDTH2 - x - 1] = BG_CLR;
                 if (x == WIDTH2 - 1) {
-                    p.lines++;
-                    p.bg[y][WIDTH - 1] = 0;
                     p.state = STATE_PLAY;
+                    p.bg[y][WIDTH - 1] = 0;
+                    p.lines++;
+                    p.decay_highlight = false;
                 }
                 break;
             }
@@ -183,6 +189,7 @@ static void update() {
             // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "tetris.mp3",
             //                      NULL);
             p.state = STATE_TETRIS;
+            p.decay_highlight = true;
             reset_timer(&p.decay_tmr);
         }
 
@@ -196,6 +203,7 @@ static void render() {
     if (p.state == STATE_PLAY) render_tetromino(16, 1, &p.ttm);
     render_lines(0, 0);
     render_background_frame(15, 0);
+    if (p.decay_highlight)  render_background_highlight(16, 1);
     render_next_ttm(0, 3);
     render_ttm_statistics(0, 7);
     if (p.pause) tb_printf(24, 10, 0, 0, "PAUSED");
@@ -208,6 +216,12 @@ static void render_background_frame(int xoff, int yoff) {
     for (int y = 0; y < HEIGHT; y++) {
         tb_printf(xoff, yoff + y + 1, 0, 0, "│");
         tb_printf(xoff + 21, yoff + y + 1, 0, 0, "│");
+    }
+}
+
+static void render_background_highlight(int xoff, int yoff) {
+    for (int y = 0; y < HEIGHT; y++) {
+        tb_printf(xoff, yoff + y, 0, 0, "░░░░░░░░░░░░░░░░░░░░");
     }
 }
 
