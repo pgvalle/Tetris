@@ -6,6 +6,7 @@
 #include <termbox2.h>
 
 #include <stdint.h>
+#include <string.h>
 
 #define WIDTH2 ((WIDTH - 1) / 2)
 

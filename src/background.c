@@ -4,6 +4,7 @@
 #include "tetromino.h"
 
 #include <stdbool.h>
+#include <string.h>
 #include <termbox2.h>
 
 void init_background(tetromino_color_t bg[HEIGHT][WIDTH]) {

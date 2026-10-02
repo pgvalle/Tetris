@@ -79,6 +79,7 @@ void init(enum tetris_screen_t s) {
         t.level = 0;
         ma_result result = ma_engine_init(NULL, &t.ma_eng);
         assert(result == MA_SUCCESS && "error starting sound engine");
+        t.init = true;
 
         // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song1.mp3", 0, NULL,
         // NULL,

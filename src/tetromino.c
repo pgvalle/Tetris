@@ -2,6 +2,7 @@
 #include "point.h"
 
 #include <stdlib.h>
+#include <string.h>
 #include <termbox2.h>
 
 static point_t POINTS[][4] = {
@@ -21,9 +22,7 @@ static const char *ASCII[7] = {
 };
 
 static int random_range(int low, int high) {
-    float random = 1.0 * rand() / RAND_MAX;
-    int range = high - low + 1;
-    return low + random * range;
+    return low + rand() % (high - low + 1);
 }
 
 static struct {
@@ -87,6 +86,7 @@ void rotate_tetromino(tetromino_t *t, int cw) {
     case TETROMINO_TYPE_S:
     case TETROMINO_TYPE_I:
         t->deg = t->deg == 90 ? 0 : 90;
+        break;
     default:
         break;
     }
