@@ -1,6 +1,7 @@
 #include "tetromino.h"
 #include "point.h"
 
+#include <stdlib.h>
 #include <termbox2.h>
 
 static point_t POINTS[][4] = {
@@ -13,8 +14,7 @@ static point_t POINTS[][4] = {
     {{0, 0}, {0, 1}, {-1, 1}, {-1, 0}}  // O
 };
 
-static tetromino_color_t COLORS[] = {TB_RED,  TB_GREEN,   TB_YELLOW,
-                                     TB_BLUE, TB_MAGENTA, TB_CYAN};
+static tetromino_color_t COLORS[] = {TB_RED, TB_GREEN, TB_BLUE, TB_MAGENTA};
 
 static const char *ASCII[7] = {
     "█▀▀▀", "▀▀▀█", " ▀█▄", " ▄█▀", "▀▀▀▀", " ▀█▀", " ██ ",
@@ -26,18 +26,53 @@ static int random_range(int low, int high) {
     return low + random * range;
 }
 
+static struct {
+    tetromino_color_t colors[4];
+    tetromino_type_t types[TETROMINO_TYPE_COUNT];
+    int len_colors;
+    int len_types;
+} bags = {.len_colors = 0, .len_types = 0};
+
+static tetromino_color_t next_rand_color() {
+    if (bags.len_colors == 0) {
+        for (int i = 0; i < 4; i++)
+            bags.colors[i] = COLORS[i];
+        bags.len_colors = 4;
+    }
+
+    int r = random_range(0, bags.len_colors - 1);
+    tetromino_color_t clr = bags.colors[r];
+    memmove(bags.colors + r, bags.colors + r + 1,
+            (bags.len_colors - r - 1) * sizeof(bags.colors[0]));
+    bags.len_colors--;
+    return clr;
+}
+
+static tetromino_type_t next_rand_type() {
+    if (bags.len_types == 0) {
+        for (int i = 0; i < TETROMINO_TYPE_COUNT; i++)
+            bags.types[i] = i;
+        bags.len_types = TETROMINO_TYPE_COUNT;
+    }
+
+    int r = random_range(0, bags.len_types - 1);
+    tetromino_type_t tt = bags.types[r];
+    memmove(bags.types + r, bags.types + r + 1,
+            (bags.len_types - r - 1) * sizeof(bags.types[0]));
+    bags.len_types--;
+    return tt;
+}
+
 tetromino_t create_tetromino(int x, int y) {
     tetromino_t t;
-    t.type = random_range(0, TETROMINO_TYPE_COUNT - 1);
-    t.clr = COLORS[random_range(0, 5)];
+    t.type = next_rand_type();
+    t.clr = next_rand_color();
     t.pos = (point_t){x, y};
     t.deg = 0;
     return t;
 }
 
-point_t *get_tetromino_points(tetromino_type_t tt) {
-    return POINTS[tt];
-}
+point_t *get_tetromino_points(tetromino_type_t tt) { return POINTS[tt]; }
 
 void rotate_tetromino(tetromino_t *t, int cw) {
     switch (t->type) {
@@ -57,9 +92,7 @@ void rotate_tetromino(tetromino_t *t, int cw) {
     }
 }
 
-const char *get_tetromino_1x4_utf8(tetromino_type_t tt) {
-    return ASCII[tt];
-}
+const char *get_tetromino_1x4_utf8(tetromino_type_t tt) { return ASCII[tt]; }
 
 void render_tetromino(int xoff, int yoff, const tetromino_t *t) {
     const point_t *pts = get_tetromino_points(t->type);
