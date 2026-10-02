@@ -6,11 +6,11 @@
 
 static struct timespec epoch;
 
-void init_timer_module() {
+void game_timer_module_init(void) {
     timespec_get(&epoch, TIME_UTC);
 }
 
-uint32_t get_ms_time() {
+uint32_t game_timer_get_ms(void) {
     struct timespec now;
     timespec_get(&now, TIME_UTC);
     long sec = now.tv_sec - epoch.tv_sec;
@@ -18,28 +18,29 @@ uint32_t get_ms_time() {
     return 1e3 * sec + nsec / 1e6;
 }
 
-tim3r_t create_timer(int timeout) {
-    tim3r_t t;
-    t.timeout = timeout;
-    t.elapsed = 0;
-    t.paused = false;
-    return t;
+game_timer_t game_timer_create(uint32_t timeout) {
+    game_timer_t timer;
+    timer.timeout = timeout;
+    timer.elapsed = 0;
+    timer.paused = false;
+    return timer;
 }
 
-void pause_timer(tim3r_t *t) {
-    t->paused = true;
+void game_timer_pause(game_timer_t *timer) {
+    timer->paused = true;
 }
 
-void reset_timer(tim3r_t *t) {
-    t->elapsed = 0;
-    t->paused = false;
+void game_timer_reset(game_timer_t *timer) {
+    timer->elapsed = 0;
+    timer->paused = false;
 }
 
-void update_timer(tim3r_t *t, uint32_t delta) {
-    if (!t->paused)
-        t->elapsed += delta;
+void game_timer_update(game_timer_t *timer, uint32_t delta) {
+    if (!timer->paused) {
+        timer->elapsed += delta;
+    }
 }
 
-bool has_timed_out(const tim3r_t *t) {
-    return t->elapsed >= t->timeout;
+bool game_timer_has_expired(const game_timer_t *timer) {
+    return timer->elapsed >= timer->timeout;
 }

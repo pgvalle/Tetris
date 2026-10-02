@@ -44,19 +44,19 @@ int main() {
     enum tetris_screen_t s = t.screen;
     while (true) {
         struct tb_event e;
-        uint32_t start = get_ms_time();
+        uint32_t start = game_timer_get_ms();
         uint32_t timeout = MS_PER_FRAME;
 
         while (tb_peek_event(&e, timeout) != TB_ERR_NO_EVENT) {
             process_input_event(s, &e);
-            uint32_t delta = get_ms_time() - start;
+            uint32_t delta = game_timer_get_ms() - start;
             if (delta < MS_PER_FRAME)
                 timeout -= delta;
             else
                 timeout = 0;
         }
 
-        uint32_t delta = get_ms_time() - start;
+        uint32_t delta = game_timer_get_ms() - start;
         process_frame_event(s, delta);
 
         if (s != t.screen) {
@@ -74,7 +74,7 @@ void init(enum tetris_screen_t s) {
         setlocale(LC_ALL, "");
         srand(time(NULL));
         tb_init();
-        init_timer_module();
+        game_timer_module_init();
 
         t.level = 0;
         ma_result result = ma_engine_init(NULL, &t.ma_eng);

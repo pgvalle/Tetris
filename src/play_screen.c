@@ -15,8 +15,8 @@ static struct {
     tetromino_color_t bg[HEIGHT][WIDTH];
     tetromino_t ttm, next_ttm;
     uint32_t ttm_statistics[TETROMINO_TYPE_COUNT];
-    tim3r_t gravt_tmr;
-    tim3r_t decay_tmr;
+    game_timer_t gravt_tmr;
+    game_timer_t decay_tmr;
     bool decay_highlight;
     int lines;
     bool pause;
@@ -37,8 +37,8 @@ void init_play_screen() {
     p.next_ttm = create_tetromino(0, 0);
     memset(p.ttm_statistics, 0, sizeof(p.ttm_statistics));
     p.ttm_statistics[p.ttm.type]++;
-    p.gravt_tmr = create_timer(800);
-    p.decay_tmr = create_timer(80);
+    p.gravt_tmr = game_timer_create(800);
+    p.decay_tmr = game_timer_create(80);
     p.decay_highlight = false;
     p.lines = 0;
     p.pause = false;
@@ -96,7 +96,7 @@ void process_play_screen_input_event(const struct tb_event *e) {
         if (collide_tetromino(p.bg, &p.ttm)) {
             p.ttm.pos = prev_pos;
             if (moved_down) {
-                reset_timer(&p.gravt_tmr);
+                game_timer_reset(&p.gravt_tmr);
                 move_tetromino_to_background(p.bg, &p.ttm);
                 int tetris = verify_tetris(p.bg);
                 if (!tetris) {
@@ -109,14 +109,14 @@ void process_play_screen_input_event(const struct tb_event *e) {
                     //                      SFX_BASE_DIR "semi-tetris.mp3",
                     //                      NULL);
                     p.state = STATE_SEMI_TETRIS;
-                    reset_timer(&p.decay_tmr);
+                    game_timer_reset(&p.decay_tmr);
                 } else {
                     // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR
                     // "tetris.mp3",
                     //                      NULL);
                     p.state = STATE_TETRIS;
                     p.decay_highlight = true;
-                    reset_timer(&p.decay_tmr);
+                    game_timer_reset(&p.decay_tmr);
                 }
             }
         } else if (moved_sideways) {
@@ -131,15 +131,15 @@ void process_play_screen_input_event(const struct tb_event *e) {
 }
 
 void process_play_screen_frame_event(uint32_t delta) {
-    update_timer(&p.gravt_tmr, delta);
-    update_timer(&p.decay_tmr, delta);
+    game_timer_update(&p.gravt_tmr, delta);
+    game_timer_update(&p.decay_tmr, delta);
     update();
     render();
 }
 
 static void spawn_next_ttm() {
     p.ttm = p.next_ttm;
-    p.ttm.pos = create_point(WIDTH2, 0);
+    p.ttm.pos = point_create(WIDTH2, 0);
     p.next_ttm = create_tetromino(0, 0);
     p.ttm_statistics[p.ttm.type]++;
 }
@@ -148,12 +148,12 @@ static void update() {
     switch (p.state) {
     case STATE_TETRIS:
     case STATE_SEMI_TETRIS:
-        if (!has_timed_out(&p.decay_tmr))
+        if (!game_timer_has_expired(&p.decay_tmr))
             break;
         if (p.state == STATE_TETRIS)
             p.decay_highlight = !p.decay_highlight;
 
-        reset_timer(&p.decay_tmr);
+        game_timer_reset(&p.decay_tmr);
         for (int y = 0; y < HEIGHT; y++) {
             if (p.bg[y][WIDTH - 1] != WIDTH - 1)
                 continue;
@@ -182,11 +182,11 @@ static void update() {
     case STATE_PLAY:
         if (p.pause)
             break;
-        if (!has_timed_out(&p.gravt_tmr))
+        if (!game_timer_has_expired(&p.gravt_tmr))
             break;
 
         p.ttm.pos.y += 1;
-        reset_timer(&p.gravt_tmr);
+        game_timer_reset(&p.gravt_tmr);
         if (!collide_tetromino(p.bg, &p.ttm))
             break;
 
@@ -202,13 +202,13 @@ static void update() {
             // ma_engine_play_sound(&g.ma_eng,
             //                      SFX_BASE_DIR "semi-tetris.mp3", NULL);
             p.state = STATE_SEMI_TETRIS;
-            reset_timer(&p.decay_tmr);
+            game_timer_reset(&p.decay_tmr);
         } else {
             // ma_engine_play_sound(&g.ma_eng, SFX_BASE_DIR "tetris.mp3",
             //                      NULL);
             p.state = STATE_TETRIS;
             p.decay_highlight = true;
-            reset_timer(&p.decay_tmr);
+            game_timer_reset(&p.decay_tmr);
         }
 
         break;

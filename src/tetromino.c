@@ -97,7 +97,8 @@ const char *get_tetromino_1x4_utf8(tetromino_type_t tt) { return ASCII[tt]; }
 void render_tetromino(int xoff, int yoff, const tetromino_t *t) {
     const point_t *pts = get_tetromino_points(t->type);
     for (int i = 0; i < 4; i++) {
-        point_t pt = rotate_n_move_point(pts[i], t->deg, t->pos);
+        point_t pt = point_rotate_and_translate(pts[i], t->deg, t->pos);
         tb_printf(2 * pt.x + xoff, pt.y + yoff, 0, t->clr, "  ");
     }
 }
+

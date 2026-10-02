@@ -8,16 +8,16 @@ typedef struct {
     uint32_t timeout;
     uint32_t elapsed;
     bool paused;
-} tim3r_t;
+} game_timer_t;
 
-void init_timer_module();
-uint32_t get_ms_time();
+void game_timer_module_init(void);
+uint32_t game_timer_get_ms(void);
 
-tim3r_t create_timer(int timeout);
-void pause_timer(tim3r_t *t);
+game_timer_t game_timer_create(uint32_t timeout);
+void game_timer_pause(game_timer_t *timer);
 // unpauses it too
-void reset_timer(tim3r_t *t);
-void update_timer(tim3r_t *t, uint32_t delta);
-bool has_timed_out(const tim3r_t *t);
+void game_timer_reset(game_timer_t *timer);
+void game_timer_update(game_timer_t *timer, uint32_t delta);
+bool game_timer_has_expired(const game_timer_t *timer);
 
 #endif // TETRIS_TIMER_H

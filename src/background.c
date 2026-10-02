@@ -19,7 +19,7 @@ void move_tetromino_to_background(tetromino_color_t bg[HEIGHT][WIDTH],
                                   const tetromino_t *t) {
     const point_t *pts = get_tetromino_points(t->type);
     for (int i = 0; i < 4; i++) {
-        point_t pt = rotate_n_move_point(pts[i], t->deg, t->pos);
+        point_t pt = point_rotate_and_translate(pts[i], t->deg, t->pos);
         bg[pt.y][pt.x] = t->clr;
         bg[pt.y][WIDTH - 1]++;
     }
@@ -30,7 +30,7 @@ bool collide_tetromino(const tetromino_color_t bg[HEIGHT][WIDTH],
     const point_t *pts = get_tetromino_points(t->type);
 
     for (int i = 0; i < 4; i++) {
-        point_t pt = rotate_n_move_point(pts[i], t->deg, t->pos);
+        point_t pt = point_rotate_and_translate(pts[i], t->deg, t->pos);
         // walls collision
         if (pt.x < 0 || pt.x >= WIDTH - 1 || pt.y >= HEIGHT)
             return true;
