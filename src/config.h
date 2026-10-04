@@ -10,12 +10,12 @@
 #define SFX_BASE_DIR RES_BASE_DIR "sfx/"
 
 // border style
-#define H "━"
-#define HH "━━"
-#define V "┃"
-#define TL "┏"
-#define TR "┓"
-#define BR "┛"
-#define BL "┗"
+#define BOX_H "━"
+#define BOX_HH "━━"
+#define BOX_V "┃"
+#define BOX_TL "┏"
+#define BOX_TR "┓"
+#define BOX_BR "┛"
+#define BOX_BL "┗"
 
 #endif // TETRIS_CONFIG_H

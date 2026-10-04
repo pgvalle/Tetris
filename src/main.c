@@ -30,7 +30,7 @@ SEMITETRIS
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MS_PER_FRAME (1000 / FPS)
 
-struct tetris_t t = {.init = false};
+struct tetris_t g_game = {.init = false};
 
 static void init(enum tetris_screen_t s);
 static void quit(enum tetris_screen_t s);
@@ -38,10 +38,10 @@ static void process_input_event(enum tetris_screen_t s,
                                 const struct tb_event *e);
 static void process_frame_event(enum tetris_screen_t s, uint32_t delta);
 
-int main() {
+int main(void) {
     init(SCREEN_PLAY);
 
-    enum tetris_screen_t s = t.screen;
+    enum tetris_screen_t s = g_game.screen;
     while (true) {
         struct tb_event e;
         uint32_t start = game_timer_get_ms();
@@ -50,56 +50,42 @@ int main() {
         while (tb_peek_event(&e, timeout) != TB_ERR_NO_EVENT) {
             process_input_event(s, &e);
             uint32_t delta = game_timer_get_ms() - start;
-            if (delta < MS_PER_FRAME)
+            if (delta < MS_PER_FRAME) {
                 timeout -= delta;
-            else
+            } else {
                 timeout = 0;
+            }
         }
 
         uint32_t delta = game_timer_get_ms() - start;
         process_frame_event(s, delta);
 
-        if (s != t.screen) {
+        if (s != g_game.screen) {
             quit(s);
-            init(t.screen);
-            s = t.screen;
+            init(g_game.screen);
+            s = g_game.screen;
         }
     }
 
-    shutdown(EXIT_SUCCESS);
+    shutdown_game(EXIT_SUCCESS);
 }
 
-void init(enum tetris_screen_t s) {
-    if (!t.init) {
+static void init(enum tetris_screen_t s) {
+    if (!g_game.init) {
         setlocale(LC_ALL, "");
         srand(time(NULL));
         tb_init();
         game_timer_module_init();
 
-        t.level = 0;
-        ma_result result = ma_engine_init(NULL, &t.ma_eng);
+        g_game.level = 0;
+        ma_result result = ma_engine_init(NULL, &g_game.ma_eng);
         assert(result == MA_SUCCESS && "error starting sound engine");
-        t.init = true;
-
-        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song1.mp3", 0, NULL,
-        // NULL,
-        //                         g.sounds + 0);
-        // ma_sound_set_looping(g.sounds + 0, true);
-        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song2.mp3", 0, NULL,
-        // NULL,
-        //                         g.sounds + 1);
-        // ma_sound_set_looping(g.sounds + 1, true);
-        // ma_sound_init_from_file(&g.ma_eng, SFX_BASE_DIR "song3.mp3", 0, NULL,
-        // NULL,
-        //                         g.sounds + 2);
-        // ma_sound_set_looping(g.sounds + 2, true);
-
-        // ma_sound_start(g.sounds + 0);
+        g_game.init = true;
     }
 
     switch (s) {
     case SCREEN_PLAY:
-        init_play_screen();
+        play_screen_init();
         break;
     case SCREEN_SPLASH:
     case SCREEN_MENU:
@@ -107,13 +93,13 @@ void init(enum tetris_screen_t s) {
         break;
     }
 
-    t.screen = s;
+    g_game.screen = s;
 }
 
 static void quit(enum tetris_screen_t s) {
     switch (s) {
     case SCREEN_PLAY:
-        quit_play_screen();
+        play_screen_quit();
         break;
     case SCREEN_SPLASH:
     case SCREEN_MENU:
@@ -122,20 +108,17 @@ static void quit(enum tetris_screen_t s) {
     }
 }
 
-void shutdown(int status) {
-    // ma_sound_uninit(g.sounds + 0);
-    // ma_sound_uninit(g.sounds + 1);
-    // ma_sound_uninit(g.sounds + 2);
-    ma_engine_uninit(&t.ma_eng);
+void shutdown_game(int status) {
+    ma_engine_uninit(&g_game.ma_eng);
     tb_shutdown();
-    quit_play_screen();
+    play_screen_quit();
     exit(status);
 }
 
-void process_input_event(enum tetris_screen_t s, const struct tb_event *e) {
+static void process_input_event(enum tetris_screen_t s, const struct tb_event *e) {
     switch (s) {
     case SCREEN_PLAY:
-        process_play_screen_input_event(e);
+        play_screen_process_input(e);
         break;
     case SCREEN_SPLASH:
     case SCREEN_MENU:
@@ -144,10 +127,10 @@ void process_input_event(enum tetris_screen_t s, const struct tb_event *e) {
     }
 }
 
-void process_frame_event(enum tetris_screen_t s, uint32_t delta) {
+static void process_frame_event(enum tetris_screen_t s, uint32_t delta) {
     switch (s) {
     case SCREEN_PLAY:
-        process_play_screen_frame_event(delta);
+        play_screen_process_frame(delta);
         break;
     case SCREEN_SPLASH:
     case SCREEN_MENU:

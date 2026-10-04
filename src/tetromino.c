@@ -32,10 +32,11 @@ static struct {
     int len_types;
 } bags = {.len_colors = 0, .len_types = 0};
 
-static tetromino_color_t next_rand_color() {
+static tetromino_color_t next_rand_color(void) {
     if (bags.len_colors == 0) {
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 4; i++) {
             bags.colors[i] = COLORS[i];
+        }
         bags.len_colors = 4;
     }
 
@@ -47,10 +48,11 @@ static tetromino_color_t next_rand_color() {
     return clr;
 }
 
-static tetromino_type_t next_rand_type() {
+static tetromino_type_t next_rand_type(void) {
     if (bags.len_types == 0) {
-        for (int i = 0; i < TETROMINO_TYPE_COUNT; i++)
+        for (int i = 0; i < TETROMINO_TYPE_COUNT; i++) {
             bags.types[i] = i;
+        }
         bags.len_types = TETROMINO_TYPE_COUNT;
     }
 
@@ -62,43 +64,48 @@ static tetromino_type_t next_rand_type() {
     return tt;
 }
 
-tetromino_t create_tetromino(int x, int y) {
-    tetromino_t t;
-    t.type = next_rand_type();
-    t.clr = next_rand_color();
-    t.pos = (point_t){x, y};
-    t.deg = 0;
-    return t;
+tetromino_t tetromino_create(int x, int y) {
+    tetromino_t tetromino;
+    tetromino.type = next_rand_type();
+    tetromino.clr = next_rand_color();
+    tetromino.pos = point_create(x, y);
+    tetromino.deg = 0;
+    return tetromino;
 }
 
-point_t *get_tetromino_points(tetromino_type_t tt) { return POINTS[tt]; }
+const point_t *tetromino_get_points(tetromino_type_t tt) {
+    return POINTS[tt];
+}
 
-void rotate_tetromino(tetromino_t *t, int cw) {
-    switch (t->type) {
+void tetromino_rotate(tetromino_t *tetromino, bool clockwise) {
+    switch (tetromino->type) {
     case TETROMINO_TYPE_O:
         break;
     case TETROMINO_TYPE_L: // all 4 orientations valid
     case TETROMINO_TYPE_J:
     case TETROMINO_TYPE_T:
-        t->deg += (cw ? -1 : 1) * 90;
+        tetromino->deg += (clockwise ? -1 : 1) * 90;
         break;
     case TETROMINO_TYPE_Z: // only 2 valid orientations
     case TETROMINO_TYPE_S:
     case TETROMINO_TYPE_I:
-        t->deg = t->deg == 90 ? 0 : 90;
+        tetromino->deg = tetromino->deg == 90 ? 0 : 90;
         break;
     default:
         break;
     }
 }
 
-const char *get_tetromino_1x4_utf8(tetromino_type_t tt) { return ASCII[tt]; }
+const char *tetromino_get_1x4_utf8(tetromino_type_t tt) {
+    return ASCII[tt];
+}
 
-void render_tetromino(int xoff, int yoff, const tetromino_t *t) {
-    const point_t *pts = get_tetromino_points(t->type);
+void tetromino_render(int xoff, int yoff, const tetromino_t *tetromino) {
+    const point_t *pts = tetromino_get_points(tetromino->type);
     for (int i = 0; i < 4; i++) {
-        point_t pt = point_rotate_and_translate(pts[i], t->deg, t->pos);
-        tb_printf(2 * pt.x + xoff, pt.y + yoff, 0, t->clr, "  ");
+        point_t pt = point_rotate_and_translate(pts[i], tetromino->deg, tetromino->pos);
+        tb_printf(2 * pt.x + xoff, pt.y + yoff, 0, tetromino->clr, "  ");
     }
 }
+
 

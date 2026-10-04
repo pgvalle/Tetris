@@ -19,15 +19,15 @@ struct tetris_t {
     bool init;
 };
 
-extern struct tetris_t t;
+extern struct tetris_t g_game;
 
-void shutdown(int status);
+void shutdown_game(int status);
 
 // SCREENS
 
-void init_play_screen();
-void quit_play_screen();
-void process_play_screen_input_event(const struct tb_event *e);
-void process_play_screen_frame_event(uint32_t delta);
+void play_screen_init(void);
+void play_screen_quit(void);
+void play_screen_process_input(const struct tb_event *e);
+void play_screen_process_frame(uint32_t delta);
 
-#endif // TETRIS_GLOBAL_H
+#endif // TETRIS_H

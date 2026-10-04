@@ -4,8 +4,9 @@
 #include "point.h"
 
 #include <stdbool.h>
+#include <termbox2.h>
 
-typedef char tetromino_color_t;
+typedef uintattr_t tetromino_color_t;
 
 typedef enum {
     TETROMINO_TYPE_L = 0,
@@ -25,10 +26,10 @@ typedef struct {
     int deg;
 } tetromino_t;
 
-tetromino_t create_tetromino(int x, int y);
-point_t *get_tetromino_points(tetromino_type_t tt);
-const char *get_tetromino_1x4_utf8(tetromino_type_t tt);
-void rotate_tetromino(tetromino_t *t, int cw);
-void render_tetromino(int xoff, int yoff, const tetromino_t *t);
+tetromino_t tetromino_create(int x, int y);
+const point_t *tetromino_get_points(tetromino_type_t tt);
+const char *tetromino_get_1x4_utf8(tetromino_type_t tt);
+void tetromino_rotate(tetromino_t *tetromino, bool clockwise);
+void tetromino_render(int xoff, int yoff, const tetromino_t *tetromino);
 
 #endif // TETRIS_TETROMINO_H
