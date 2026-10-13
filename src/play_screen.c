@@ -11,7 +11,7 @@
 #define WIDTH2 ((WIDTH - 1) / 2)
 
 static struct {
-    enum { STATE_PLAY, STATE_SEMI_TETRIS, STATE_TETRIS } state;
+    enum { STATE_PLAY, STATE_SEMI_TETRIS, STATE_TETRIS, STATE_OVER } state;
     tetromino_color_t bg[HEIGHT][WIDTH];
     tetromino_t current_tetromino, next_tetromino;
     uint32_t ttm_statistics[TETROMINO_TYPE_COUNT];
@@ -22,6 +22,7 @@ static struct {
     bool pause;
 } s_play_screen;
 
+static bool check_and_set_game_over();
 static void spawn_next_tetromino(void);
 static void update(void);
 static void render(void);
@@ -51,18 +52,22 @@ void play_screen_process_input(const struct tb_event *e) {
     if (e->type != TB_EVENT_KEY)
         return;
 
-    if (e->ch == 'p') {
-        s_play_screen.pause = !s_play_screen.pause;
-        s_play_screen.gravity_timer.paused = s_play_screen.pause;
-        s_play_screen.decay_timer.paused = s_play_screen.pause;
-        return;
-    } else if (e->ch == 'q') {
+    if (e->ch == 'q') {
         shutdown_game(EXIT_SUCCESS);
     }
 
     switch (s_play_screen.state) {
     case STATE_PLAY:
+        if (e->ch == 'p') {
+            s_play_screen.pause = !s_play_screen.pause;
+            s_play_screen.gravity_timer.paused = s_play_screen.pause;
+            s_play_screen.decay_timer.paused = s_play_screen.pause;
+            break;
+        }
+
         if (s_play_screen.pause)
+            break;
+        if (check_and_set_game_over())
             break;
 
         switch (e->ch) {
@@ -110,6 +115,13 @@ void play_screen_process_input(const struct tb_event *e) {
         break;
     case STATE_SEMI_TETRIS:
     case STATE_TETRIS:
+        if (e->ch == 'p') {
+            s_play_screen.pause = !s_play_screen.pause;
+            s_play_screen.gravity_timer.paused = s_play_screen.pause;
+            s_play_screen.decay_timer.paused = s_play_screen.pause;
+        }
+        break;
+    case STATE_OVER:
         break;
     }
 }
@@ -119,6 +131,19 @@ void play_screen_process_frame(uint32_t delta) {
     game_timer_update(&s_play_screen.decay_timer, delta);
     update();
     render();
+}
+
+static bool check_and_set_game_over() {
+    bool over = s_play_screen.current_tetromino.pos.y == 0 &&
+                background_check_collision(s_play_screen.bg, &s_play_screen.current_tetromino);
+    if (over) {
+        background_place_tetromino(s_play_screen.bg, &s_play_screen.current_tetromino);
+        s_play_screen.state = STATE_OVER;
+        s_play_screen.decay_timer = game_timer_create(2 * s_play_screen.decay_timer.timeout);
+        for (int y = 0; y < HEIGHT; y++)
+            s_play_screen.bg[y][WIDTH - 1] = 0;
+    }
+    return over;
 }
 
 static void spawn_next_tetromino(void) {
@@ -132,8 +157,11 @@ static void update(void) {
     switch (s_play_screen.state) {
     case STATE_TETRIS:
     case STATE_SEMI_TETRIS:
+        if (s_play_screen.pause)
+            break;
         if (!game_timer_has_expired(&s_play_screen.decay_timer))
             break;
+
         if (s_play_screen.state == STATE_TETRIS)
             s_play_screen.decay_highlight = !s_play_screen.decay_highlight;
 
@@ -168,6 +196,8 @@ static void update(void) {
             break;
         if (!game_timer_has_expired(&s_play_screen.gravity_timer))
             break;
+        if (check_and_set_game_over())
+            break;
 
         s_play_screen.current_tetromino.pos.y += 1;
         game_timer_reset(&s_play_screen.gravity_timer);
@@ -188,7 +218,19 @@ static void update(void) {
             s_play_screen.decay_highlight = true;
             game_timer_reset(&s_play_screen.decay_timer);
         }
+        break;
+    case STATE_OVER:
+        if (!game_timer_has_expired(&s_play_screen.decay_timer))
+            break;
 
+        for (int y = 0; y < HEIGHT; y++) {
+            int x = s_play_screen.bg[y][WIDTH - 1];
+            if (x < WIDTH - 1) {
+                s_play_screen.bg[y][x] = TB_WHITE;
+                s_play_screen.bg[y][WIDTH - 1]++;
+                break;
+            }
+        }
         break;
     }
 }
@@ -214,6 +256,9 @@ static void render(void) {
         else
             background_render_highlighted(17, 1, s_play_screen.bg);
         render_next_tetromino(1, 3);
+        break;
+    case STATE_OVER:
+        background_render(17, 1, s_play_screen.bg);
         break;
     }
 
