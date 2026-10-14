@@ -21,12 +21,15 @@ static struct {
     bool decay_highlight;
     int lines;
     bool pause;
+    int bonus;
 } s_play_screen;
 
 static bool check_and_set_game_over();
+static void check_and_set_tetris();
 static void spawn_next_tetromino(void);
 static void update(void);
 static void render(void);
+static void render_score(int xoff, int yoff);
 static void render_background_frame(int xoff, int yoff);
 static void render_next_tetromino(int xoff, int yoff);
 static void render_tetromino_statistics(int xoff, int yoff);
@@ -44,6 +47,7 @@ void play_screen_init(void) {
     s_play_screen.decay_highlight = false;
     s_play_screen.lines = 0;
     s_play_screen.pause = false;
+    s_play_screen.bonus = 0;
 }
 
 void play_screen_quit(void) {
@@ -93,22 +97,15 @@ void play_screen_process_input(const struct tb_event *e) {
         bool moved_down = s_play_screen.current_tetromino.pos.y != prev_pos.y;
         bool moved_sideways = s_play_screen.current_tetromino.pos.x != prev_pos.x;
 
+        if (moved_down)
+            s_play_screen.bonus += 1;
+
         if (background_check_collision(s_play_screen.bg, &s_play_screen.current_tetromino)) {
             s_play_screen.current_tetromino.pos = prev_pos;
             if (moved_down) {
                 game_timer_reset(&s_play_screen.gravity_timer);
                 background_place_tetromino(s_play_screen.bg, &s_play_screen.current_tetromino);
-                int tetris = background_verify_tetris(s_play_screen.bg);
-                if (!tetris) {
-                    spawn_next_tetromino();
-                } else if (tetris == 1) {
-                    s_play_screen.state = STATE_SEMI_TETRIS;
-                    game_timer_reset(&s_play_screen.decay_timer);
-                } else {
-                    s_play_screen.state = STATE_TETRIS;
-                    s_play_screen.decay_highlight = true;
-                    game_timer_reset(&s_play_screen.decay_timer);
-                }
+                check_and_set_tetris();
             }
         } else if (moved_sideways) {
             // sideways move
@@ -147,6 +144,22 @@ static bool check_and_set_game_over() {
     return over;
 }
 
+static void check_and_set_tetris() {
+    int tetris = background_verify_tetris(s_play_screen.bg);
+    if (!tetris) {
+        g_game.score += s_play_screen.bonus;
+        s_play_screen.bonus = 0;
+        spawn_next_tetromino();
+    } else if (tetris == 1) {
+        s_play_screen.state = STATE_SEMI_TETRIS;
+        game_timer_reset(&s_play_screen.decay_timer);
+    } else {
+        s_play_screen.state = STATE_TETRIS;
+        s_play_screen.decay_highlight = true;
+        game_timer_reset(&s_play_screen.decay_timer);
+    }
+}
+
 static void spawn_next_tetromino(void) {
     s_play_screen.current_tetromino = s_play_screen.next_tetromino;
     s_play_screen.current_tetromino.pos = point_create(WIDTH2, 0);
@@ -165,6 +178,8 @@ static void update(void) {
 
         if (s_play_screen.state == STATE_TETRIS)
             s_play_screen.decay_highlight = !s_play_screen.decay_highlight;
+
+        int lines = s_play_screen.lines;
 
         game_timer_reset(&s_play_screen.decay_timer);
         for (int y = 0; y < HEIGHT; y++) {
@@ -188,6 +203,10 @@ static void update(void) {
         }
 
         if (s_play_screen.state == STATE_PLAY) {
+            static const int values[] = {40, 100, 300, 1200};
+            int diff = s_play_screen.lines - lines;
+            g_game.score += values[diff - 1] * (g_game.level + 1) + s_play_screen.bonus;
+            s_play_screen.bonus = 0;
             background_compact(s_play_screen.bg);
             spawn_next_tetromino();
         }
@@ -207,18 +226,7 @@ static void update(void) {
 
         s_play_screen.current_tetromino.pos.y -= 1;
         background_place_tetromino(s_play_screen.bg, &s_play_screen.current_tetromino);
-
-        int tetris = background_verify_tetris(s_play_screen.bg);
-        if (!tetris) {
-            spawn_next_tetromino();
-        } else if (tetris == 1) {
-            s_play_screen.state = STATE_SEMI_TETRIS;
-            game_timer_reset(&s_play_screen.decay_timer);
-        } else {
-            s_play_screen.state = STATE_TETRIS;
-            s_play_screen.decay_highlight = true;
-            game_timer_reset(&s_play_screen.decay_timer);
-        }
+        check_and_set_tetris();
         break;
     case STATE_OVER:
         if (!game_timer_has_expired(&s_play_screen.decay_timer))
@@ -272,11 +280,18 @@ static void render(void) {
     }
 
     render_background_frame(16, 0);
+    render_score(40, 0);
     render_lines(1, 0);
     render_tetromino_statistics(1, 7);
     if (s_play_screen.pause)
         tb_printf(24, 10, 0, 0, "PAUSED");
     tb_present();
+}
+
+static void render_score(int xoff, int yoff) {
+    tb_printf(xoff, yoff + 0, 0, 0, BOX_TL BOX_HH " SCORE " BOX_H BOX_HH BOX_TR);
+    tb_printf(xoff, yoff + 1, 0, 0, BOX_V "  %08d  " BOX_V, g_game.score);
+    tb_printf(xoff, yoff + 2, 0, 0, BOX_BL BOX_HH BOX_HH BOX_HH BOX_HH BOX_HH BOX_HH BOX_BR);
 }
 
 static void render_background_frame(int xoff, int yoff) {
