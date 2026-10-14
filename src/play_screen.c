@@ -1,4 +1,5 @@
 #include "background.h"
+#include "config.h"
 #include "tetris.h"
 #include "tetromino.h"
 #include "timer.h"
@@ -137,9 +138,9 @@ static bool check_and_set_game_over() {
     bool over = s_play_screen.current_tetromino.pos.y == 0 &&
                 background_check_collision(s_play_screen.bg, &s_play_screen.current_tetromino);
     if (over) {
-        background_place_tetromino(s_play_screen.bg, &s_play_screen.current_tetromino);
         s_play_screen.state = STATE_OVER;
-        s_play_screen.decay_timer = game_timer_create(2 * s_play_screen.decay_timer.timeout);
+        background_place_tetromino(s_play_screen.bg, &s_play_screen.current_tetromino);
+        game_timer_reset(&s_play_screen.decay_timer);
         for (int y = 0; y < HEIGHT; y++)
             s_play_screen.bg[y][WIDTH - 1] = 0;
     }
@@ -223,11 +224,19 @@ static void update(void) {
         if (!game_timer_has_expired(&s_play_screen.decay_timer))
             break;
 
+        if (s_play_screen.bg[HEIGHT - 1][WIDTH - 1]) {
+            // g_game.screen = SCREEN_PLAY;
+            play_screen_quit();
+            play_screen_init();
+            break;
+        }
+
+        game_timer_reset(&s_play_screen.decay_timer);
         for (int y = 0; y < HEIGHT; y++) {
-            int x = s_play_screen.bg[y][WIDTH - 1];
-            if (x < WIDTH - 1) {
-                s_play_screen.bg[y][x] = TB_WHITE;
-                s_play_screen.bg[y][WIDTH - 1]++;
+            if (!s_play_screen.bg[y][WIDTH - 1]) {
+                s_play_screen.bg[y][WIDTH - 1] = 1;
+                for (int x = 0; x < WIDTH - 1; x++)
+                    s_play_screen.bg[y][x] = TB_WHITE;
                 break;
             }
         }
