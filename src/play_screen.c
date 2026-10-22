@@ -27,9 +27,11 @@ static struct {
 static bool check_and_set_game_over();
 static void check_and_set_tetris();
 static void spawn_next_tetromino(void);
+static void level_up();
 static void update(void);
 static void render(void);
 static void render_score(int xoff, int yoff);
+static void render_level(int xoff, int yoff);
 static void render_background_frame(int xoff, int yoff);
 static void render_next_tetromino(int xoff, int yoff);
 static void render_tetromino_statistics(int xoff, int yoff);
@@ -42,7 +44,7 @@ void play_screen_init(void) {
     s_play_screen.next_tetromino = tetromino_create(0, 0);
     memset(s_play_screen.ttm_statistics, 0, sizeof(s_play_screen.ttm_statistics));
     s_play_screen.ttm_statistics[s_play_screen.current_tetromino.type]++;
-    s_play_screen.gravity_timer = game_timer_create(800);
+    level_up();
     s_play_screen.decay_timer = game_timer_create(80);
     s_play_screen.decay_highlight = false;
     s_play_screen.lines = 0;
@@ -136,11 +138,11 @@ static bool check_and_set_game_over() {
                 background_check_collision(s_play_screen.bg, &s_play_screen.current_tetromino);
     if (over) {
         s_play_screen.state = STATE_OVER;
+        s_play_screen.decay_timer = game_timer_create(80);
         background_place_tetromino(s_play_screen.bg, &s_play_screen.current_tetromino);
-        game_timer_reset(&s_play_screen.decay_timer);
         for (int y = 0; y < HEIGHT; y++)
             s_play_screen.bg[y][WIDTH - 1] = 0;
-    }
+        }
     return over;
 }
 
@@ -165,6 +167,18 @@ static void spawn_next_tetromino(void) {
     s_play_screen.current_tetromino.pos = point_create(WIDTH2, 0);
     s_play_screen.next_tetromino = tetromino_create(0, 0);
     s_play_screen.ttm_statistics[s_play_screen.current_tetromino.type]++;
+}
+
+static void level_up() {
+    int cells_per_frame;
+    if (g_game.level <= 8) {
+        cells_per_frame = 48 - g_game.level * 5;
+    } else {
+        cells_per_frame = 6;
+    }
+
+    int timeout = (1000 * cells_per_frame) / FPS;
+    s_play_screen.gravity_timer = game_timer_create(timeout);
 }
 
 static void update(void) {
@@ -205,8 +219,13 @@ static void update(void) {
         if (s_play_screen.state == STATE_PLAY) {
             static const int values[] = {40, 100, 300, 1200};
             int diff = s_play_screen.lines - lines;
+            bool levelup = lines / 10 < s_play_screen.lines / 10;
             g_game.score += values[diff - 1] * (g_game.level + 1) + s_play_screen.bonus;
             s_play_screen.bonus = 0;
+            if (levelup) {
+                g_game.level++;
+                level_up();
+            }
             background_compact(s_play_screen.bg);
             spawn_next_tetromino();
         }
@@ -281,6 +300,7 @@ static void render(void) {
 
     render_background_frame(16, 0);
     render_score(40, 0);
+    render_level(40, 3);
     render_lines(1, 0);
     render_tetromino_statistics(1, 7);
     if (s_play_screen.pause)
@@ -291,6 +311,12 @@ static void render(void) {
 static void render_score(int xoff, int yoff) {
     tb_printf(xoff, yoff + 0, 0, 0, BOX_TL BOX_HH " SCORE " BOX_H BOX_HH BOX_TR);
     tb_printf(xoff, yoff + 1, 0, 0, BOX_V "  %08d  " BOX_V, g_game.score);
+    tb_printf(xoff, yoff + 2, 0, 0, BOX_BL BOX_HH BOX_HH BOX_HH BOX_HH BOX_HH BOX_HH BOX_BR);
+}
+
+static void render_level(int xoff, int yoff) {
+    tb_printf(xoff, yoff + 0, 0, 0, BOX_TL BOX_HH BOX_HH BOX_HH BOX_HH BOX_HH BOX_HH BOX_TR);
+    tb_printf(xoff, yoff + 1, 0, 0, BOX_V " LEVEL %04d " BOX_V, g_game.level);
     tb_printf(xoff, yoff + 2, 0, 0, BOX_BL BOX_HH BOX_HH BOX_HH BOX_HH BOX_HH BOX_HH BOX_BR);
 }
 
